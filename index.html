@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FasalProof – Satellite Proof for Crop Insurance</title>
+﻿<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FasalProof â€“ Satellite Proof for Crop Insurance</title>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#071510">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 .hero{text-align:center;padding:48px 16px 20px}
 .earth{width:150px;height:150px;margin:auto;position:relative}
 .earth .p{position:absolute;inset:25px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#4fc3f7,#0d47a1 60%,#052b5e);box-shadow:0 0 40px #29b6f6;animation:pulse 3s infinite}
-.earth .o{position:absolute;inset:0;animation:spin 6s linear infinite}.earth .o:before{content:"🛰️";position:absolute;top:-6px;left:50%;font-size:28px}
+.earth .o{position:absolute;inset:0;animation:spin 6s linear infinite}.earth .o:before{content:"ðŸ›°ï¸";position:absolute;top:-6px;left:50%;font-size:28px}
 .earth .l{position:absolute;inset:25px;border-radius:50%;background:radial-gradient(circle at 60% 55%,#2e7d32 0 18%,transparent 19%),radial-gradient(circle at 35% 65%,#43a047 0 12%,transparent 13%)}
 @keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{box-shadow:0 0 70px #4fc3f7}}
 h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800;margin:14px 0 4px;background:linear-gradient(90deg,#00e676,#29b6f6,#00e676);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gr 4s linear infinite}
@@ -67,11 +67,11 @@ body.lt{background:#eef5f1;color:#0c2218}.lt .bg{opacity:.3}.lt .card{background
 .lt input,.lt select,.lt textarea{background:#f3f8f5!important;color:#0c2218!important;border-color:#cfe0d6!important}.lt td,.lt label,.lt .tag,.lt .note,.lt .stats div{color:#2e6b4a}.lt nav{background:rgba(255,255,255,.85)}.lt nav a{color:#2e6b4a}.lt .k div{background:#f3f8f5}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script></head><body><div class="bg"></div><div id="pg"></div><div id="cg"></div><div id="toast"></div>
-<nav><span class="brand">🛰️ FasalProof</span><a href="#sec1">Analyse</a><a href="#out">Results</a><a href="#secH">History</a><a href="#secB">Bulk</a><a href="#secM">Method</a><span id="st">● checking</span><button id="th2" title="Theme (T)">◐</button><button id="fz" title="Text size">A+</button></nav>
+<nav><span class="brand">ðŸ›°ï¸ FasalProof</span><a href="#sec1">Analyse</a><a href="#out">Results</a><a href="#secH">History</a><a href="#secB">Bulk</a><a href="#secM">Method</a><span id="st">â— checking</span><button id="th2" title="Theme (T)">â—</button><button id="fz" title="Text size">A+</button></nav>
 <div class="hero np"><div class="earth"><div class="p"></div><div class="l"></div><div class="o"></div></div>
-<h1>FasalProof</h1><p class="tag">Satellite proof for every farmer's crop insurance claim. Free Sentinel-2 data, zero cost, in your language.</p><div class="stats"><div><b data-n="0" data-s="₹">0</b>cost to farmer</div><div><b data-n="10" data-s=" m">0</b>satellite resolution</div><div><b data-n="5" data-s=" days">0</b>revisit time</div><div><b data-n="3" data-s=" languages">0</b>supported</div></div></div>
+<h1>FasalProof</h1><p class="tag">Satellite proof for every farmer's crop insurance claim. Free Sentinel-2 data, zero cost, in your language.</p><div class="stats"><div><b data-n="0" data-s="â‚¹">0</b>cost to farmer</div><div><b data-n="10" data-s=" m">0</b>satellite resolution</div><div><b data-n="5" data-s=" days">0</b>revisit time</div><div><b data-n="3" data-s=" languages">0</b>supported</div></div></div>
 <div class="w">
-<div class="card np" id="sec1"><b>1. Tap your field on the satellite map</b><div id="map"></div><div class="pre"><span>⚡ Try an example:</span><button class="s" data-p="18.99,75.76,2025-11-20,Flood,Soybean">Maharashtra</button><button class="s" data-p="30.90,75.85,2025-04-12,Hailstorm,Wheat">Punjab</button><button class="s" data-p="26.91,75.79,2025-12-15,Drought,Cotton">Rajasthan</button></div>
+<div class="card np" id="sec1"><b>1. Tap your field on the satellite map</b><div id="map"></div><div class="pre"><span>âš¡ Try an example:</span><button class="s" data-p="18.99,75.76,2025-11-20,Flood,Soybean">Maharashtra</button><button class="s" data-p="30.90,75.85,2025-04-12,Hailstorm,Wheat">Punjab</button><button class="s" data-p="26.91,75.79,2025-12-15,Drought,Cotton">Rajasthan</button></div>
 <div class="g">
 <div><label>Farmer</label><input id="nm" value="Ramesh Patil"></div>
 <div><label>Village, District</label><input id="vl" value="Beed, Maharashtra"></div>
@@ -79,34 +79,34 @@ body.lt{background:#eef5f1;color:#0c2218}.lt .bg{opacity:.3}.lt .card{background
 <div><label>Area (acres)</label><input id="ar" type="number" value="3" min=".5" step=".5"></div>
 <div><label>Calamity</label><select id="ev"><option>Flood</option><option>Drought</option><option>Hailstorm</option><option>Pest attack</option></select></div>
 <div><label>Date of loss</label><input id="dt" type="date" value="2025-09-20"></div>
-<div><label>Language</label><select id="lg"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></div></div>
-<button id="go">🛰️ Analyse my field</button> <button class="s" id="gl">📍 Use my location</button> <span id="err" class="red"></span></div>
-<div class="radar card" id="rd"><span></span><p>Scanning satellite images…</p></div>
+<div><label>Language</label><select id="lg"><option value="en">English</option><option value="hi">à¤¹à¤¿à¤¨à¥à¤¦à¥€</option><option value="mr">à¤®à¤°à¤¾à¤ à¥€</option></select></div></div>
+<button id="go">ðŸ›°ï¸ Analyse my field</button> <button class="s" id="gl">ðŸ“ Use my location</button> <span id="err" class="red"></span></div>
+<div class="radar card" id="rd"><span></span><p>Scanning satellite imagesâ€¦</p></div>
 <div id="out" class="hid">
 <div class="card"><div class="k" id="kp"></div><div class="gauge"><i id="gb"></i></div><span class="badge" id="sv"></span> <small id="cf"></small>
 <h3 id="ct"></h3><canvas id="ch" height="130"></canvas></div>
-<div class="card"><h3>🧠 Claim strength &amp; weather proof</h3><div class="ex"><div id="ring"></div><ul id="ins"></ul><div id="qr" title="Scan to verify"></div></div><div class="ex" style="margin:14px 0"><canvas id="rr" style="max-width:270px"></canvas><div style="flex:1;min-width:220px"><h4 style="margin:0 0 6px">🤖 AI-style analyst summary</h4><p id="an" class="note" style="min-height:90px"></p><small>🌊 Flood water extent increase</small><div class="gauge"><i id="wg" style="background:linear-gradient(90deg,#29b6f6,#0d47a1)"></i></div><small id="wt"></small></div></div><canvas id="wc" height="90"></canvas><div class="th" id="th"></div></div>
+<div class="card"><h3>ðŸ§  Claim strength &amp; weather proof</h3><div class="ex"><div id="ring"></div><ul id="ins"></ul><div id="qr" title="Scan to verify"></div></div><div class="ex" style="margin:14px 0"><canvas id="rr" style="max-width:270px"></canvas><div style="flex:1;min-width:220px"><h4 style="margin:0 0 6px">ðŸ¤– AI-style analyst summary</h4><p id="an" class="note" style="min-height:90px"></p><small>ðŸŒŠ Flood water extent increase</small><div class="gauge"><i id="wg" style="background:linear-gradient(90deg,#29b6f6,#0d47a1)"></i></div><small id="wt"></small></div></div><canvas id="wc" height="90"></canvas><div class="th" id="th"></div></div>
 <div class="card"><h3 id="rt"></h3><table id="tb"></table><p class="note" id="nt"></p>
-<button id="pr" class="np">⬇ Download claim report (PDF)</button> <button class="s np" id="sh">Copy summary</button> <button class="s np" id="ex">🖼 Save as image</button> <button class="s np" id="wa">Send on WhatsApp</button> <button class="s np" id="ls">🔊 Read aloud</button></div></div>
-<div class="card np" id="secH"><h3>🕘 Recent analyses</h3><div class="hs" id="hs"><small>Nothing yet. Run an analysis.</small></div></div>
-<div class="card np" id="secB"><h3>🏦 Bank / Insurer bulk mode</h3><p class="note">Paste one plot per line: <code>name,lat,lon,loss-date</code>. Screens hundreds of claims for fast triage. Results can be downloaded as CSV.</p>
+<button id="pr" class="np">â¬‡ Download claim report (PDF)</button> <button class="s np" id="sh">Copy summary</button> <button class="s np" id="ex">ðŸ–¼ Save as image</button> <button class="s np" id="wa">Send on WhatsApp</button> <button class="s np" id="ls">ðŸ”Š Read aloud</button></div></div>
+<div class="card np" id="secH"><h3>ðŸ•˜ Recent analyses</h3><div class="hs" id="hs"><small>Nothing yet. Run an analysis.</small></div></div>
+<div class="card np" id="secB"><h3>ðŸ¦ Bank / Insurer bulk mode</h3><p class="note">Paste one plot per line: <code>name,lat,lon,loss-date</code>. Screens hundreds of claims for fast triage. Results can be downloaded as CSV.</p>
 <textarea id="bt" rows="4" style="width:100%;padding:9px;border-radius:10px;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.2)">Ramesh,18.99,75.76,2025-11-20
 Gurpreet,30.90,75.85,2025-04-12
 Sunita,26.91,75.79,2025-12-15</textarea>
-<button id="bg">▶ Screen all claims</button> <button class="s" id="bd">⬇ Download CSV</button>
+<button id="bg">â–¶ Screen all claims</button> <button class="s" id="bd">â¬‡ Download CSV</button>
 <div class="gauge"><i id="bp"></i></div><table><tbody id="bb"></tbody></table></div>
-<div class="card np" id="secM"><h3>🔬 Methodology &amp; honest limitations</h3><p class="note">NDVI = (NIR−Red)/(NIR+Red) from Sentinel-2 (10 m). We compare the plot's peak pre-loss health with the average after the loss date, after masking clouds and shadows per pixel. NDWI flags standing water. Rainfall and temperature come from Open-Meteo reanalysis. Limits: NDVI cannot tell which crop is growing, small plots are approximated by a 200 m square, and results are supporting evidence, not an official crop-cutting assessment. Next step: integrate state land-record (Bhulekh) boundaries.</p></div>
+<div class="card np" id="secM"><h3>ðŸ”¬ Methodology &amp; honest limitations</h3><p class="note">NDVI = (NIRâˆ’Red)/(NIR+Red) from Sentinel-2 (10 m). We compare the plot's peak pre-loss health with the average after the loss date, after masking clouds and shadows per pixel. NDWI flags standing water. Rainfall and temperature come from Open-Meteo reanalysis. Limits: NDVI cannot tell which crop is growing, small plots are approximated by a 200 m square, and results are supporting evidence, not an official crop-cutting assessment. Next step: integrate state land-record (Bhulekh) boundaries.</p></div>
 <p class="note np" id="mode"></p></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const API=""; // <-- paste your Render URL here, e.g. "https://fasalproof-api.onrender.com" (empty = demo simulation)
+const API="https://fasalproof.onrender.com"; // <-- paste your Render URL here, e.g. "https://fasalproof-api.onrender.com" (empty = demo simulation)
 const $=i=>document.getElementById(i);
 for(let i=0;i<22;i++){const d=document.createElement('div');d.className='dot';d.style.cssText=`left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:-${Math.random()*20}s`;document.body.appendChild(d)}
 const T={en:{rep:"Crop Loss Evidence Report",chart:"Vegetation health (NDVI) from satellite",loss:"Vegetation loss",el:"Claim-eligible area",rows:["Farmer","Location","Crop","Area","Calamity","Date of loss","GPS","Source"],warn:"PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This is supporting evidence, not an official assessment."},
-hi:{rep:"फसल नुकसान साक्ष्य रिपोर्ट",chart:"उपग्रह से फसल स्वास्थ्य (NDVI)",loss:"फसल नुकसान",el:"दावा योग्य क्षेत्र",rows:["किसान","स्थान","फसल","क्षेत्र","आपदा","नुकसान की तारीख","GPS","स्रोत"],warn:"PMFBY: स्थानीय आपदा की सूचना 72 घंटे में 14447, बैंक या फसल बीमा ऐप पर दें। यह सहायक साक्ष्य है, आधिकारिक आकलन नहीं।"},
-mr:{rep:"पीक नुकसान पुरावा अहवाल",chart:"उपग्रहावरून पिकाचे आरोग्य (NDVI)",loss:"पीक नुकसान",el:"दावा पात्र क्षेत्र",rows:["शेतकरी","ठिकाण","पीक","क्षेत्र","आपत्ती","नुकसानाची तारीख","GPS","स्रोत"],warn:"PMFBY: स्थानिक आपत्तीची माहिती 72 तासांत 14447, बँक किंवा पीक विमा ॲपवर द्या. हा पूरक पुरावा आहे, अधिकृत मूल्यांकन नाही."}};
+hi:{rep:"à¤«à¤¸à¤² à¤¨à¥à¤•à¤¸à¤¾à¤¨ à¤¸à¤¾à¤•à¥à¤·à¥à¤¯ à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿ",chart:"à¤‰à¤ªà¤—à¥à¤°à¤¹ à¤¸à¥‡ à¤«à¤¸à¤² à¤¸à¥à¤µà¤¾à¤¸à¥à¤¥à¥à¤¯ (NDVI)",loss:"à¤«à¤¸à¤² à¤¨à¥à¤•à¤¸à¤¾à¤¨",el:"à¤¦à¤¾à¤µà¤¾ à¤¯à¥‹à¤—à¥à¤¯ à¤•à¥à¤·à¥‡à¤¤à¥à¤°",rows:["à¤•à¤¿à¤¸à¤¾à¤¨","à¤¸à¥à¤¥à¤¾à¤¨","à¤«à¤¸à¤²","à¤•à¥à¤·à¥‡à¤¤à¥à¤°","à¤†à¤ªà¤¦à¤¾","à¤¨à¥à¤•à¤¸à¤¾à¤¨ à¤•à¥€ à¤¤à¤¾à¤°à¥€à¤–","GPS","à¤¸à¥à¤°à¥‹à¤¤"],warn:"PMFBY: à¤¸à¥à¤¥à¤¾à¤¨à¥€à¤¯ à¤†à¤ªà¤¦à¤¾ à¤•à¥€ à¤¸à¥‚à¤šà¤¨à¤¾ 72 à¤˜à¤‚à¤Ÿà¥‡ à¤®à¥‡à¤‚ 14447, à¤¬à¥ˆà¤‚à¤• à¤¯à¤¾ à¤«à¤¸à¤² à¤¬à¥€à¤®à¤¾ à¤à¤ª à¤ªà¤° à¤¦à¥‡à¤‚à¥¤ à¤¯à¤¹ à¤¸à¤¹à¤¾à¤¯à¤• à¤¸à¤¾à¤•à¥à¤·à¥à¤¯ à¤¹à¥ˆ, à¤†à¤§à¤¿à¤•à¤¾à¤°à¤¿à¤• à¤†à¤•à¤²à¤¨ à¤¨à¤¹à¥€à¤‚à¥¤"},
+mr:{rep:"à¤ªà¥€à¤• à¤¨à¥à¤•à¤¸à¤¾à¤¨ à¤ªà¥à¤°à¤¾à¤µà¤¾ à¤…à¤¹à¤µà¤¾à¤²",chart:"à¤‰à¤ªà¤—à¥à¤°à¤¹à¤¾à¤µà¤°à¥‚à¤¨ à¤ªà¤¿à¤•à¤¾à¤šà¥‡ à¤†à¤°à¥‹à¤—à¥à¤¯ (NDVI)",loss:"à¤ªà¥€à¤• à¤¨à¥à¤•à¤¸à¤¾à¤¨",el:"à¤¦à¤¾à¤µà¤¾ à¤ªà¤¾à¤¤à¥à¤° à¤•à¥à¤·à¥‡à¤¤à¥à¤°",rows:["à¤¶à¥‡à¤¤à¤•à¤°à¥€","à¤ à¤¿à¤•à¤¾à¤£","à¤ªà¥€à¤•","à¤•à¥à¤·à¥‡à¤¤à¥à¤°","à¤†à¤ªà¤¤à¥à¤¤à¥€","à¤¨à¥à¤•à¤¸à¤¾à¤¨à¤¾à¤šà¥€ à¤¤à¤¾à¤°à¥€à¤–","GPS","à¤¸à¥à¤°à¥‹à¤¤"],warn:"PMFBY: à¤¸à¥à¤¥à¤¾à¤¨à¤¿à¤• à¤†à¤ªà¤¤à¥à¤¤à¥€à¤šà¥€ à¤®à¤¾à¤¹à¤¿à¤¤à¥€ 72 à¤¤à¤¾à¤¸à¤¾à¤‚à¤¤ 14447, à¤¬à¤à¤• à¤•à¤¿à¤‚à¤µà¤¾ à¤ªà¥€à¤• à¤µà¤¿à¤®à¤¾ à¥²à¤ªà¤µà¤° à¤¦à¥à¤¯à¤¾. à¤¹à¤¾ à¤ªà¥‚à¤°à¤• à¤ªà¥à¤°à¤¾à¤µà¤¾ à¤†à¤¹à¥‡, à¤…à¤§à¤¿à¤•à¥ƒà¤¤ à¤®à¥‚à¤²à¥à¤¯à¤¾à¤‚à¤•à¤¨ à¤¨à¤¾à¤¹à¥€."}};
 let pos={lat:18.99,lon:75.76},chart,last="";
 const map=L.map('map').setView([pos.lat,pos.lon],15);
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri, Maxar'}).addTo(map);
@@ -120,10 +120,10 @@ function sim(){const r=(()=>{let h=7;return()=>(h=(h*16807)%2147483647)/21474836
 function count(el,to,suf=''){let s=null;const f=t=>{s=s||t;const p=Math.min(1,(t-s)/1500);el.textContent=(to*p).toFixed(1)+suf;p<1&&requestAnimationFrame(f)};requestAnimationFrame(f)}
 async function run(){$('err').textContent='';$('out').classList.add('hid');$('rd').classList.add('on');
  let d;try{if(API){const r=await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:pos.lat,lon:pos.lon,loss_date:$('dt').value})});if(!r.ok)throw new Error((await r.json()).detail||'API error');d=await r.json()}else{await new Promise(r=>setTimeout(r,1800));d=sim()}}
- catch(e){$('rd').classList.remove('on');$('err').textContent='⚠ '+e.message;return}
+ catch(e){$('rd').classList.remove('on');$('err').textContent='âš  '+e.message;return}
  $('rd').classList.remove('on');show(d)}
 function show(d){const L_=T[$('lg').value],ac=+$('ar').value;
- $('kp').innerHTML=`<div><b class="red" id="c1">0</b>${L_.loss}</div><div><b id="c2">0</b>${L_.el}</div><div><b>${d.baseline_ndvi}→${d.post_ndvi}</b>NDVI</div><div><b>${d.images_used}</b>satellite scenes</div>`;
+ $('kp').innerHTML=`<div><b class="red" id="c1">0</b>${L_.loss}</div><div><b id="c2">0</b>${L_.el}</div><div><b>${d.baseline_ndvi}â†’${d.post_ndvi}</b>NDVI</div><div><b>${d.images_used}</b>satellite scenes</div>`;
  $('out').classList.remove('hid');count($('c1'),d.loss_pct,'%');count($('c2'),ac*d.loss_pct/100,' ac');
  $('gb').style.width='0';setTimeout(()=>$('gb').style.width=d.loss_pct+'%',100);$('sv').textContent=d.severity.toUpperCase();$('cf').textContent='confidence: '+d.confidence;
  $('ct').textContent=L_.chart;$('rt').textContent=L_.rep;const ld=$('dt').value,i0=d.series.findIndex(p=>p.date>=ld);
@@ -142,23 +142,23 @@ async function extras(d){const ld=$('dt').value,t0=new Date(ld),iso=x=>x.toISOSt
  try{const r=await(await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${pos.lat}&longitude=${pos.lon}&start_date=${s}&end_date=${e}&daily=precipitation_sum,temperature_2m_max&timezone=auto`)).json();days=r.daily.time.map((t,i)=>({t,p:r.daily.precipitation_sum[i]||0,x:r.daily.temperature_2m_max[i]||0}))}catch(_){}
  const near=days.filter(x=>Math.abs(new Date(x.t)-t0)<=3*864e5),r3=near.reduce((a,x)=>a+x.p,0),r30=days.reduce((a,x)=>a+x.p,0),hot=Math.max(0,...days.slice(-10).map(x=>x.x));
  let ok=null,msg='Weather check not applicable for this calamity.';
- if(days.length){if(ev==='Flood'){ok=r3>=60;msg=`Rainfall within ±3 days: ${r3.toFixed(0)} mm (${ok?'consistent with flooding':'lower than typical flood level'}).`}
+ if(days.length){if(ev==='Flood'){ok=r3>=60;msg=`Rainfall within Â±3 days: ${r3.toFixed(0)} mm (${ok?'consistent with flooding':'lower than typical flood level'}).`}
  else if(ev==='Hailstorm'){ok=near.some(x=>x.p>=20);msg=`Max daily rain near date: ${Math.max(0,...near.map(x=>x.p)).toFixed(0)} mm (${ok?'storm activity detected':'no strong storm signal'}).`}
- else if(ev==='Drought'){ok=r30<40||hot>=40;msg=`30-day rainfall: ${r30.toFixed(0)} mm, peak temp ${hot.toFixed(0)}°C (${ok?'dry/hot conditions confirmed':'not clearly dry'}).`}}
+ else if(ev==='Drought'){ok=r30<40||hot>=40;msg=`30-day rainfall: ${r30.toFixed(0)} mm, peak temp ${hot.toFixed(0)}Â°C (${ok?'dry/hot conditions confirmed':'not clearly dry'}).`}}
  const late=(now-t0)/864e5,a=Math.min(50,d.loss_pct*.8),b=ok===null?15:ok?30:8,c=late<=3?20:late<=14?12:5;SC=Math.round(a+b+c);
  const col=SC>=70?'#00e676':SC>=45?'#ffeb3b':'#ff5252',tier=SC>=70?'STRONG':SC>=45?'MODERATE':'WEAK';
  $('ring').innerHTML=`<svg width="120" height="120" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/><circle id="rc" cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 2s"/><text x="50" y="54" text-anchor="middle" fill="#fff" font-size="22" font-weight="800" id="sc">0</text><text x="50" y="68" text-anchor="middle" fill="${col}" font-size="8">${tier}</text></svg>`;
  setTimeout(()=>$('rc').style.strokeDashoffset=251.3*(1-SC/100),100);count($('sc'),SC);setTimeout(()=>$('sc').textContent=SC,1600);
- $('ins').innerHTML=`<li>🛰️ Satellite: ${d.loss_pct}% vegetation drop (${d.severity})</li><li>🌧️ ${msg}</li><li>⏱️ ${late<=3?'Reported within 72 h ✔':'Reported '+Math.round(late)+' days after loss. File intimation immediately.'}</li>`;
+ $('ins').innerHTML=`<li>ðŸ›°ï¸ Satellite: ${d.loss_pct}% vegetation drop (${d.severity})</li><li>ðŸŒ§ï¸ ${msg}</li><li>â±ï¸ ${late<=3?'Reported within 72 h âœ”':'Reported '+Math.round(late)+' days after loss. File intimation immediately.'}</li>`;
  if(wch)wch.destroy();if(days.length)wch=new Chart($('wc'),{type:'bar',data:{labels:days.map(x=>x.t.slice(5)),datasets:[{label:'Rain (mm)',data:days.map(x=>x.p),backgroundColor:days.map(x=>Math.abs(new Date(x.t)-t0)<=864e5?'#ff5252':'#29b6f6')}]},options:{animation:{duration:1800},plugins:{legend:{labels:{color:'#a5d6a7'}}},scales:{x:{ticks:{color:'#a5d6a7',maxTicksLimit:10}},y:{ticks:{color:'#a5d6a7'}}}}});
- $('th').innerHTML=d.before_img?`<figure><img src="${d.before_img}" alt="before"><figcaption>🟢 Before loss (Sentinel-2)</figcaption></figure><figure><img src="${d.after_img}" alt="after"><figcaption>🔴 After loss (Sentinel-2)</figcaption></figure>`:'';
+ $('th').innerHTML=d.before_img?`<figure><img src="${d.before_img}" alt="before"><figcaption>ðŸŸ¢ Before loss (Sentinel-2)</figcaption></figure><figure><img src="${d.after_img}" alt="after"><figcaption>ðŸ”´ After loss (Sentinel-2)</figcaption></figure>`:'';
  last+=` | Claim strength ${SC}/100 (${tier})`;$('qr').innerHTML='';new QRCode($('qr'),{text:last.slice(0,200),width:96,height:96});
  const comp=[a/50*100,b/30*100,c/20*100,Math.min(100,(d.water_pct||0)*2.5),d.confidence==='high'?100:d.confidence==='medium'?65:40];
  if(window.rch)rch.destroy();rch=new Chart($('rr'),{type:'radar',data:{labels:['Satellite','Weather','Timeliness','Flood water','Data quality'],datasets:[{data:comp,backgroundColor:'rgba(0,230,118,.25)',borderColor:'#00e676',pointBackgroundColor:'#00e676'}]},options:{animation:{duration:2000},plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.15)'},angleLines:{color:'rgba(255,255,255,.15)'},pointLabels:{color:'#a5d6a7'}}}}});
  setTimeout(()=>$('wg').style.width=Math.min(100,(d.water_pct||0)*2)+'%',100);$('wt').textContent=(d.water_pct||0)+'% more of the plot is under water vs. before'+(ev==='Flood'?'':' (relevant mainly for floods)');
  const txt=`${$('nm').value}'s ${$('cr').value} field (${$('ar').value} acres) shows ${d.loss_pct}% vegetation loss after the ${ev.toLowerCase()} on ${ld}, backed by ${d.images_used} satellite scenes. ${msg} Claim strength: ${tier} (${SC}/100). Next steps: (1) call 14447 or inform your bank now, (2) keep this report, (3) photograph the field with date and location on, (4) share your land record and sowing proof.`;
  clearInterval(window.tw);let i=0;$('an').textContent='';window.tw=setInterval(()=>{$('an').textContent=txt.slice(0,i+=3);if(i>txt.length)clearInterval(window.tw)},18)}
-$('gl').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pin(p.coords.latitude,p.coords.longitude);map.setView([p.coords.latitude,p.coords.longitude],16)},()=>$('err').textContent='⚠ Location permission blocked');
+$('gl').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pin(p.coords.latitude,p.coords.longitude);map.setView([p.coords.latitude,p.coords.longitude],16)},()=>$('err').textContent='âš  Location permission blocked');
 $('wa').onclick=()=>open('https://wa.me/?text='+encodeURIComponent(last));
 $('ls').onclick=()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(last.replace(/\|/g,'.'));u.lang={en:'en-IN',hi:'hi-IN',mr:'mr-IN'}[$('lg').value];speechSynthesis.speak(u)};
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -175,9 +175,9 @@ $('bg').onclick=bulk;$('bd').onclick=()=>{if(!window.bcsv)return;const a=documen
 function toast(m){const t=document.createElement('div');t.textContent=m;$('toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
 function loadP(lat,lon,dt,ev,cr){pin(+lat,+lon);map.setView([+lat,+lon],15);$('dt').value=dt;$('ev').value=ev;$('cr').value=cr;run()}
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p.split(',');loadP(...p)});
-function renderH(){try{const a=JSON.parse(localStorage.getItem('fp_h')||'[]');if(!a.length)return;$('hs').innerHTML=a.map((x,i)=>`<button class="s" data-i="${i}">${x.n} · ${x.ev} · ${x.l}%</button>`).join('');$('hs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=a[b.dataset.i];$('nm').value=x.n;$('vl').value=x.vl;loadP(x.lat,x.lon,x.dt,x.ev,x.cr)})}catch(_){}}
+function renderH(){try{const a=JSON.parse(localStorage.getItem('fp_h')||'[]');if(!a.length)return;$('hs').innerHTML=a.map((x,i)=>`<button class="s" data-i="${i}">${x.n} Â· ${x.ev} Â· ${x.l}%</button>`).join('');$('hs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=a[b.dataset.i];$('nm').value=x.n;$('vl').value=x.vl;loadP(x.lat,x.lon,x.dt,x.ev,x.cr)})}catch(_){}}
 function hist(d){try{const a=JSON.parse(localStorage.getItem('fp_h')||'[]');a.unshift({n:$('nm').value,vl:$('vl').value,cr:$('cr').value,ev:$('ev').value,dt:$('dt').value,lat:pos.lat,lon:pos.lon,l:d.loss_pct});localStorage.setItem('fp_h',JSON.stringify(a.slice(0,6)));renderH()}catch(_){}}renderH();
-$('ex').onclick=()=>{toast('Rendering image…');html2canvas($('out'),{backgroundColor:document.body.classList.contains('lt')?'#eef5f1':'#05080d',scale:2}).then(c=>{const a=document.createElement('a');a.href=c.toDataURL();a.download='fasalproof_report.png';a.click();toast('Image saved ✓')})};
+$('ex').onclick=()=>{toast('Rendering imageâ€¦');html2canvas($('out'),{backgroundColor:document.body.classList.contains('lt')?'#eef5f1':'#05080d',scale:2}).then(c=>{const a=document.createElement('a');a.href=c.toDataURL();a.download='fasalproof_report.png';a.click();toast('Image saved âœ“')})};
 $('th2').onclick=()=>document.body.classList.toggle('lt');
 let fzi=0;$('fz').onclick=()=>{fzi=(fzi+1)%3;document.body.style.zoom=[1,1.12,1.25][fzi]};
 addEventListener('keydown',e=>{const t=e.target.tagName;if(e.key==='Enter'&&(t==='INPUT'||t==='SELECT'))run();if((e.key==='t'||e.key==='T')&&t!=='INPUT'&&t!=='TEXTAREA'&&t!=='SELECT')$('th2').click()});
@@ -185,6 +185,7 @@ addEventListener('scroll',()=>{$('pg').style.width=(scrollY/(document.documentEl
 addEventListener('mousemove',e=>{$('cg').style.left=e.clientX+'px';$('cg').style.top=e.clientY+'px'});
 document.querySelectorAll('.card').forEach(c=>{if(c.id==='sec1')return;c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(1000px) rotateY(${x*2.5}deg) rotateX(${-y*2.5}deg)`});c.addEventListener('mouseleave',()=>c.style.transform='')});
 document.querySelectorAll('[data-n]').forEach(el=>{const to=+el.dataset.n,s=el.dataset.s;let t0=null;const f=t=>{t0=t0||t;const p=Math.min(1,(t-t0)/1600);el.textContent=Math.round(to*p)+s;p<1&&requestAnimationFrame(f)};requestAnimationFrame(f)});
-(async()=>{try{if(!API)throw 0;const r=await fetch(API+'/health');if(!r.ok)throw 0;$('st').className='on';$('st').textContent='● API live'}catch(_){$('st').textContent=API?'● API waking…':'● Demo mode'}})();
-$('go').onclick=run;$('pr').onclick=()=>print();$('sh').onclick=()=>{navigator.clipboard.writeText(last).then(()=>$('sh').textContent='Copied ✓')};
+(async()=>{try{if(!API)throw 0;const r=await fetch(API+'/health');if(!r.ok)throw 0;$('st').className='on';$('st').textContent='â— API live'}catch(_){$('st').textContent=API?'â— API wakingâ€¦':'â— Demo mode'}})();
+$('go').onclick=run;$('pr').onclick=()=>print();$('sh').onclick=()=>{navigator.clipboard.writeText(last).then(()=>$('sh').textContent='Copied âœ“')};
 </script></body></html>
+
