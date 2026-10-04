@@ -53,7 +53,7 @@ def scene_stats(item, bbox):
     """Plot-level stats with per-pixel cloud masking (Sentinel-2 SCL): NDVI, NDWI, water fraction."""
     try:
         a = item["assets"]
-        with rasterio.Env(AWS_NO_SIGN_REQUEST="YES", GDAL_HTTP_TIMEOUT="20"):
+        with rasterio.Env(AWS_NO_SIGN_REQUEST="YES", GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif", GDAL_HTTP_MAX_RETRY="2", GDAL_HTTP_TIMEOUT="20"):
             with rasterio.open(a["red"]["href"]) as r:
                 w = from_bounds(*transform_bounds("EPSG:4326", r.crs, *bbox), transform=r.transform)
                 red = r.read(1, window=w).astype("float32")
@@ -72,7 +72,7 @@ def scene_stats(item, bbox):
 
 def ndvi_grid(item, bbox, n=24):
     a = item["assets"]; arr = []
-    with rasterio.Env(AWS_NO_SIGN_REQUEST="YES", GDAL_HTTP_TIMEOUT="20"):
+    with rasterio.Env(AWS_NO_SIGN_REQUEST="YES", GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif", GDAL_HTTP_MAX_RETRY="2", GDAL_HTTP_TIMEOUT="20"):
         for k, rs in (("red", Resampling.bilinear), ("nir", Resampling.bilinear), ("scl", Resampling.nearest)):
             with rasterio.open(a[k]["href"]) as s:
                 w = from_bounds(*transform_bounds("EPSG:4326", s.crs, *bbox), transform=s.transform)
@@ -87,6 +87,14 @@ def damage_zones(bi, ai, bbox):
         return zones_from_grids(ndvi_grid(bi, bbox), ndvi_grid(ai, bbox))
     except Exception as e:
         log.warning("zones failed: %s", e); return None
+
+def thin(feats, k=16):
+    """One scene per date, then at most k scenes evenly spread over the window (keeps runtime bounded)."""
+    seen = {}
+    for f in feats: seen.setdefault(f["properties"]["datetime"][:10], f)
+    fs = [seen[d] for d in sorted(seen)]
+    if len(fs) <= k: return fs
+    return [fs[i] for i in sorted(set(np.linspace(0, len(fs) - 1, k).astype(int)))]
 
 def stac_search(body):
     for attempt in range(3):
@@ -112,7 +120,8 @@ def analyze(q: Query, request: Request):
         feats = stac_search({"collections": ["sentinel-2-l2a"], "bbox": bb, "limit": 100,
             "datetime": f"{q.loss_date - timedelta(days=db)}T00:00:00Z/{q.loss_date + timedelta(days=da)}T23:59:59Z",
             "query": {"eo:cloud_cover": {"lt": 90}}})
-        with ThreadPoolExecutor(6) as ex: res = [x for x in ex.map(lambda f: scene_stats(f, bb), feats) if x]
+        feats = thin(feats)
+        with ThreadPoolExecutor(8) as ex: res = [x for x in ex.map(lambda f: scene_stats(f, bb), feats) if x]
         data = {}
         for d, v, nw, wf, th in res: data.setdefault(d, (v, nw, wf, th))
         pts = sorted(data.items())

@@ -33,7 +33,7 @@ table{width:100%;border-collapse:collapse}td{padding:7px 3px;border-bottom:1px s
 @media(max-width:900px){#side{right:16px;width:auto;max-height:44%}#hud{left:8px;right:8px;top:auto;bottom:8px;width:auto;height:56%}}
 @media print{body *{visibility:hidden}#rp,#rp *{visibility:visible}#rp{position:fixed;left:0;top:0;width:100%;color:#000}td{color:#000!important}}
 </style></head><body><div id="map"></div>
-<div class="pn" id="ld">🛰️ Querying Sentinel-2 archive &amp; running models…<div></div></div>
+<div class="pn" id="ld">🛰️ Querying Sentinel-2 archive &amp; running models…<br><small id="lt"></small><div></div></div>
 <aside class="pn" id="side"><div class="br">FASAL<i>PROOF</i></div><div class="tg">SATELLITE CLAIM INTELLIGENCE</div>
 <label>1 · TAP YOUR FIELD ON THE MAP</label><div id="gps"></div>
 <div class="r2"><div><label>FARMER</label><input id="nm" value="Ramesh Patil"></div><div><label>VILLAGE, DISTRICT</label><input id="vl" value="Beed, Maharashtra"></div>
@@ -72,9 +72,10 @@ function loadP(a,o,dt,ev,cr){pin(+a,+o);map.setView([+a,+o],16);$('dt').value=dt
 document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>loadP(...b.dataset.p.split(',')));
 $('gl').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pin(p.coords.latitude,p.coords.longitude);map.setView([p.coords.latitude,p.coords.longitude],16)},()=>$('er').textContent='⚠ Location blocked');
 async function run(){const b=$('go');b.disabled=true;$('ld').classList.add('on');$('er').textContent='';
- try{const r=await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:pos.lat,lon:pos.lon,loss_date:$('dt').value,days_before:90})}),j=await r.json();
+ const ac=new AbortController(),to=setTimeout(()=>ac.abort(),170000),t0=Date.now(),tk=setInterval(()=>$('lt').textContent=Math.round((Date.now()-t0)/1000)+'s elapsed (first run can take 1-2 min)',1000);
+ try{const r=await fetch(API+'/analyze',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:pos.lat,lon:pos.lon,loss_date:$('dt').value,days_before:90})}),j=await r.json();
   if(!r.ok)throw new Error(typeof j.detail==='string'?j.detail:(j.detail&&j.detail[0]?j.detail[0].msg:'Server error'));await render(j)}
- catch(e){$('er').textContent='⚠ '+e.message}b.disabled=false;$('ld').classList.remove('on')}
+ catch(e){$('er').textContent='⚠ '+(e.name==='AbortError'?'Timed out. The free server may be waking or busy. Wait a minute and try again.':e.message)}clearTimeout(to);clearInterval(tk);b.disabled=false;$('ld').classList.remove('on')}
 function cnt(el,to,suf){let s=null;const f=t=>{s=s||t;const p=Math.min(1,(t-s)/1400);el.textContent=(to*p).toFixed(1)+suf;p<1&&requestAnimationFrame(f)};requestAnimationFrame(f)}
 async function weather(){const ld=$('dt').value,t0=new Date(ld),iso=x=>x.toISOString().slice(0,10),now=new Date(),ev=$('ev').value;let days=[];
  try{const r=await(await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${pos.lat}&longitude=${pos.lon}&start_date=${iso(new Date(t0-30*864e5))}&end_date=${iso(new Date(Math.min(t0.getTime()+3*864e5,now-5*864e5)))}&daily=precipitation_sum,temperature_2m_max&timezone=auto`)).json();days=r.daily.time.map((t,i)=>({t,p:r.daily.precipitation_sum[i]||0,x:r.daily.temperature_2m_max[i]||0}))}catch(_){}
