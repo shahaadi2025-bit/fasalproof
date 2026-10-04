@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {ComposedChart, Area, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer, BarChart, Bar} from 'recharts';
 import {heatUrl} from './MapView';
 import Claim from './Claim';
+import Insights from './Insights';
 import {claimInfo, inr} from './crops';
 const T = {
   en: {t: 'Crop Loss Evidence Report', r: ['Farmer', 'Location', 'Crop', 'Area', 'Calamity', 'Date of loss', 'GPS', 'Vegetation loss (95% CI)', 'Claim strength', 'Source'], w: 'PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This report is supporting evidence, not an official assessment.'},
@@ -9,7 +10,7 @@ const T = {
   mr: {t: 'पीक नुकसान पुरावा अहवाल', r: ['शेतकरी', 'ठिकाण', 'पीक', 'क्षेत्र', 'आपत्ती', 'नुकसानाची तारीख', 'GPS', 'पीक नुकसान (95% CI)', 'दाव्याची ताकद', 'स्रोत'], w: 'PMFBY: स्थानिक आपत्तीची माहिती 72 तासांत 14447, बँक किंवा पीक विमा ॲपवर द्या. हा अहवाल पूरक पुरावा आहे, अधिकृत मूल्यांकन नाही.'}
 };
 const tip = {contentStyle: {background: '#0b1222', border: '1px solid #334155', fontSize: 12}};
-export default function Results({d, wx, f, pos}) {
+export default function Results({d, wx, f, pos, cd}) {
   const [t, setT] = useState('ov'), old = !d.stats, z = d.zones || null, L = T[f.lg] || T.en;
   const s = d.stats || {ci: [d.loss_pct, d.loss_pct], z: 'n/a', confidence: 0.5, exp_post: 'n/a', break_date: null, offset: null};
   const fc = d.forecast || [];
@@ -25,7 +26,7 @@ export default function Results({d, wx, f, pos}) {
   const last = `FasalProof | ${v[0]}, ${v[1]} | ${v[2]} ${v[3]} | ${v[4]} on ${f.dt} | loss ${d.loss_pct}% (CI ${s.ci[0]}-${s.ci[1]}) | claim strength ${SC}/100 ${tier} | GPS ${v[6]}`;
   const I = claimInfo(d, f);
   const ex = [['Season / PMFBY premium', `${I.c.season} · ${I.c.prem}%`], ['Growth stage at loss', I.st ? `${I.st.label} (day ${I.st.d})` : 'sowing date not given'], ['Intimation deadline (72 h)', I.dl.toLocaleString('en-IN')], ['Est. claim (indicative)', I.si ? `${inr(I.lo)} – ${inr(I.hi)} (point ${inr(I.est)})` : 'sum insured not given']];
-  const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['cl', 'Claim'], ['rp', 'Report']];
+  const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['cl', 'Claim'], ['ad', 'Advanced'], ['rp', 'Report']];
   const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN'}[f.lg]; speechSynthesis.speak(u); };
   return (
     <section className="pn on" id="hud">
@@ -60,6 +61,7 @@ export default function Results({d, wx, f, pos}) {
         <p className="nt">{wx?.msg} (Source: Open-Meteo reanalysis, free.)</p>
       </div>
       <div className={'pg' + (t === 'cl' ? ' a' : '')}><Claim d={d} f={f}/></div>
+      <div className={'pg' + (t === 'ad' ? ' a' : '')}><Insights d={d} f={f} wx={wx} cd={cd}/></div>
       <div className={'pg' + (t === 'rp' ? ' a' : '')} id="rp">
         <h3 style={{marginTop: 0}}>{L.t}</h3><table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}{ex.map(([k, x]) => <tr key={k}><td>{k}</td><td>{x}</td></tr>)}</tbody></table>
         <p className="nt">{L.w}</p>
