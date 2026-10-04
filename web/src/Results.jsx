@@ -1,6 +1,8 @@
 import {useState} from 'react';
 import {ComposedChart, Area, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer, BarChart, Bar} from 'recharts';
 import {heatUrl} from './MapView';
+import Claim from './Claim';
+import {claimInfo, inr} from './crops';
 const T = {
   en: {t: 'Crop Loss Evidence Report', r: ['Farmer', 'Location', 'Crop', 'Area', 'Calamity', 'Date of loss', 'GPS', 'Vegetation loss (95% CI)', 'Claim strength', 'Source'], w: 'PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This report is supporting evidence, not an official assessment.'},
   hi: {t: 'फसल नुकसान साक्ष्य रिपोर्ट', r: ['किसान', 'स्थान', 'फसल', 'क्षेत्र', 'आपदा', 'नुकसान की तारीख', 'GPS', 'फसल नुकसान (95% CI)', 'दावे की मज़बूती', 'स्रोत'], w: 'PMFBY: स्थानीय आपदा की सूचना 72 घंटे में 14447, बैंक या फसल बीमा ऐप पर दें। यह सहायक साक्ष्य है, आधिकारिक आकलन नहीं।'},
@@ -21,7 +23,9 @@ export default function Results({d, wx, f, pos}) {
   const lx = d.series.find(p => p.date >= f.dt)?.date.slice(5);
   const v = [f.nm, f.vl, f.cr, ac + ' acres', f.ev, f.dt, pos.lat.toFixed(5) + ', ' + pos.lon.toFixed(5), `${d.loss_pct}% (${s.ci[0]}–${s.ci[1]}%) → ~${(ac * d.loss_pct / 100).toFixed(1)} acres`, SC + '/100 ' + tier, d.source + ' · ' + d.images_used + ' scenes'];
   const last = `FasalProof | ${v[0]}, ${v[1]} | ${v[2]} ${v[3]} | ${v[4]} on ${f.dt} | loss ${d.loss_pct}% (CI ${s.ci[0]}-${s.ci[1]}) | claim strength ${SC}/100 ${tier} | GPS ${v[6]}`;
-  const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['rp', 'Report']];
+  const I = claimInfo(d, f);
+  const ex = [['Season / PMFBY premium', `${I.c.season} · ${I.c.prem}%`], ['Growth stage at loss', I.st ? `${I.st.label} (day ${I.st.d})` : 'sowing date not given'], ['Intimation deadline (72 h)', I.dl.toLocaleString('en-IN')], ['Est. claim (indicative)', I.si ? `${inr(I.lo)} – ${inr(I.hi)} (point ${inr(I.est)})` : 'sum insured not given']];
+  const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['cl', 'Claim'], ['rp', 'Report']];
   const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN'}[f.lg]; speechSynthesis.speak(u); };
   return (
     <section className="pn on" id="hud">
@@ -55,8 +59,9 @@ export default function Results({d, wx, f, pos}) {
         {wx?.days.length > 0 && <ResponsiveContainer width="100%" height={200}><BarChart data={wx.days}><XAxis dataKey="t" stroke="#8ea0bd" fontSize={10} interval={3}/><YAxis stroke="#8ea0bd" fontSize={11}/><Tooltip {...tip}/><Bar dataKey="p" fill="#22d3ee" name="Rain (mm)"/></BarChart></ResponsiveContainer>}
         <p className="nt">{wx?.msg} (Source: Open-Meteo reanalysis, free.)</p>
       </div>
+      <div className={'pg' + (t === 'cl' ? ' a' : '')}><Claim d={d} f={f}/></div>
       <div className={'pg' + (t === 'rp' ? ' a' : '')} id="rp">
-        <h3 style={{marginTop: 0}}>{L.t}</h3><table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}</tbody></table>
+        <h3 style={{marginTop: 0}}>{L.t}</h3><table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}{ex.map(([k, x]) => <tr key={k}><td>{k}</td><td>{x}</td></tr>)}</tbody></table>
         <p className="nt">{L.w}</p>
         <button className="gh" onClick={() => { setT('rp'); setTimeout(print, 150); }}>⬇ Print / PDF</button>
         <button className="gh" onClick={() => open('https://wa.me/?text=' + encodeURIComponent(last))}>WhatsApp</button>

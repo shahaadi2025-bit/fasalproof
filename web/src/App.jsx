@@ -3,9 +3,10 @@ import MapView from './MapView';
 import Results from './Results';
 import Boundary from './Boundary';
 import {analyze, health, weather} from './api';
+import {CROPS} from './crops';
 const EX = [['Maharashtra', 18.99, 75.76, '2025-11-20', 'Flood', 'Soybean'], ['Punjab', 30.90, 75.85, '2025-04-12', 'Hailstorm', 'Wheat'], ['Rajasthan', 26.91, 75.79, '2025-12-15', 'Drought', 'Cotton']];
 export default function App() {
-  const [f, setF] = useState({nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en'});
+  const [f, setF] = useState({nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', si: '40000'});
   const [pos, setPos] = useState({lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0);
   const [st, setSt] = useState('idle'), [err, setErr] = useState(''), [d, setD] = useState(null), [wx, setWx] = useState(null), [sec, setSec] = useState(0), [api, setApi] = useState('…');
   const set = k => e => setF({...f, [k]: e.target.value});
@@ -27,11 +28,14 @@ export default function App() {
       <label>1 · TAP YOUR FIELD ON THE MAP</label><div id="gps">{pos.lat.toFixed(5)}, {pos.lon.toFixed(5)}</div>
       <div className="r2">
         <div><label>FARMER</label><input value={f.nm} onChange={set('nm')}/></div><div><label>VILLAGE, DISTRICT</label><input value={f.vl} onChange={set('vl')}/></div>
-        <div><label>CROP</label><select value={f.cr} onChange={set('cr')}>{['Soybean', 'Cotton', 'Wheat', 'Rice', 'Sugarcane'].map(x => <option key={x}>{x}</option>)}</select></div>
+        <div><label>CROP</label><select value={f.cr} onChange={set('cr')}>{Object.keys(CROPS).map(x => <option key={x}>{x}</option>)}</select></div>
         <div><label>AREA (ACRES)</label><input type="number" min=".5" step=".5" value={f.ar} onChange={set('ar')}/></div>
         <div><label>CALAMITY</label><select value={f.ev} onChange={set('ev')}>{['Flood', 'Drought', 'Hailstorm', 'Pest attack'].map(x => <option key={x}>{x}</option>)}</select></div>
         <div><label>DATE OF LOSS</label><input type="date" value={f.dt} onChange={set('dt')}/></div>
+        <div><label>SOWING DATE</label><input type="date" value={f.sow} onChange={set('sow')}/></div>
+        <div><label>SUM INSURED (₹/HA)</label><input type="number" min="0" step="1000" value={f.si} onChange={set('si')}/></div>
       </div>
+      <p className="nt" style={{margin: '8px 0 0'}}>{CROPS[f.cr].season} crop · PMFBY farmer premium {CROPS[f.cr].prem}%. Enter your district's notified sum insured.</p>
       <label>REPORT LANGUAGE</label><select value={f.lg} onChange={set('lg')}><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select>
       <button id="go" disabled={st === 'loading'} onClick={run}>{st === 'loading' ? 'Analysing…' : 'Run satellite analysis'}</button>
       {st === 'error' && <div id="er">⚠ {err}</div>}
