@@ -8,14 +8,16 @@ const T = {
 };
 const tip = {contentStyle: {background: '#0b1222', border: '1px solid #334155', fontSize: 12}};
 export default function Results({d, wx, f, pos}) {
-  const [t, setT] = useState('ov'), s = d.stats, z = d.zones, L = T[f.lg] || T.en;
+  const [t, setT] = useState('ov'), old = !d.stats, z = d.zones || null, L = T[f.lg] || T.en;
+  const s = d.stats || {ci: [d.loss_pct, d.loss_pct], z: 'n/a', confidence: 0.5, exp_post: 'n/a', break_date: null, offset: null};
+  const fc = d.forecast || [];
   const late = (Date.now() - new Date(f.dt)) / 864e5, ac = +f.ar;
   const SC = Math.round(Math.min(35, d.loss_pct * .6) + 15 * s.confidence + (wx?.pts ?? 15) + (late <= 3 ? 20 : late <= 14 ? 12 : 5));
   const col = SC >= 70 ? '#22c55e' : SC >= 45 ? '#f59e0b' : '#ef4444', tier = SC >= 70 ? 'STRONG' : SC >= 45 ? 'MODERATE' : 'WEAK';
   const off = s.break_date ? `A vegetation break was detected on ${s.break_date}, ${Math.abs(s.offset)} day(s) ${s.offset >= 0 ? 'after' : 'before'} the claimed date. ` : '';
   const M = [['VEGETATION LOSS', d.loss_pct + '%', `95% CI ${s.ci[0]}–${s.ci[1]}%`], ['OBSERVED / EXPECTED', d.post_ndvi + ' / ' + s.exp_post, 'NDVI, Theil–Sen forecast'], ['ANOMALY z-SCORE', s.z, 'σ below expected'],
     ['BREAK DETECTED', s.break_date || 'n/a', s.break_date ? (s.offset >= 0 ? '+' : '') + s.offset + ' d vs claimed date' : 'needs ≥6 scenes'], ['FLOOD WATER Δ', d.water_pct + '%', 'NDWI-based'], ['SEVERE ZONES', z ? z.pct.severe + '%' : 'n/a', z ? 'k-means · ' + z.pixels + ' px' : 'too few clear pixels']];
-  const rows = d.series.map((p, i) => ({date: p.date.slice(5), ndvi: p.ndvi, ndwi: p.ndwi, exp: d.forecast[i].exp, band: [d.forecast[i].lo, d.forecast[i].hi]}));
+  const rows = d.series.map((p, i) => ({date: p.date.slice(5), ndvi: p.ndvi, ndwi: p.ndwi, exp: fc[i]?.exp, band: fc[i] ? [fc[i].lo, fc[i].hi] : undefined}));
   const lx = d.series.find(p => p.date >= f.dt)?.date.slice(5);
   const v = [f.nm, f.vl, f.cr, ac + ' acres', f.ev, f.dt, pos.lat.toFixed(5) + ', ' + pos.lon.toFixed(5), `${d.loss_pct}% (${s.ci[0]}–${s.ci[1]}%) → ~${(ac * d.loss_pct / 100).toFixed(1)} acres`, SC + '/100 ' + tier, d.source + ' · ' + d.images_used + ' scenes'];
   const last = `FasalProof | ${v[0]}, ${v[1]} | ${v[2]} ${v[3]} | ${v[4]} on ${f.dt} | loss ${d.loss_pct}% (CI ${s.ci[0]}-${s.ci[1]}) | claim strength ${SC}/100 ${tier} | GPS ${v[6]}`;
@@ -25,6 +27,7 @@ export default function Results({d, wx, f, pos}) {
     <section className="pn on" id="hud">
       <div className="tb">{tabs.map(([k, n]) => <button key={k} className={t === k ? 'a' : ''} onClick={() => setT(k)}>{n}</button>)}</div>
       <div className={'pg' + (t === 'ov' ? ' a' : '')}>
+        {old && <p className="nt" style={{color: '#f59e0b', marginBottom: 12}}>⚠ Your server is running an OLD backend version, so ML statistics are missing. On render.com open your service, click Manual Deploy, then "Clear build cache &amp; deploy".</p>}
         <div className="sc">
           <svg width="116" height="116" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="9"/>
             <circle cx="50" cy="50" r="42" fill="none" stroke={col} strokeWidth="9" strokeLinecap="round" strokeDasharray="264" strokeDashoffset={264 * (1 - SC / 100)} transform="rotate(-90 50 50)"/>

@@ -5,7 +5,7 @@ export async function analyze(body, signal) {
   if (!r.ok) throw new Error(typeof j.detail === 'string' ? j.detail : (j.detail?.[0]?.msg || 'Server error ' + r.status));
   return j;
 }
-export const health = async () => (await fetch(API + '/health')).ok;
+export const health = async () => { const r = await fetch(API + '/health'); return r.ok ? (await r.json()).version || '?' : null; };
 export async function weather(lat, lon, ld, ev) {
   const t0 = new Date(ld), iso = x => x.toISOString().slice(0, 10), now = new Date();
   let days = [];

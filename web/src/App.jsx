@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import MapView from './MapView';
 import Results from './Results';
+import Boundary from './Boundary';
 import {analyze, health, weather} from './api';
 const EX = [['Maharashtra', 18.99, 75.76, '2025-11-20', 'Flood', 'Soybean'], ['Punjab', 30.90, 75.85, '2025-04-12', 'Hailstorm', 'Wheat'], ['Rajasthan', 26.91, 75.79, '2025-12-15', 'Drought', 'Cotton']];
 export default function App() {
@@ -8,7 +9,7 @@ export default function App() {
   const [pos, setPos] = useState({lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0);
   const [st, setSt] = useState('idle'), [err, setErr] = useState(''), [d, setD] = useState(null), [wx, setWx] = useState(null), [sec, setSec] = useState(0), [api, setApi] = useState('…');
   const set = k => e => setF({...f, [k]: e.target.value});
-  useEffect(() => { health().then(ok => setApi(ok ? '● API live' : '● API error')).catch(() => setApi('● API waking…')); }, []);
+  useEffect(() => { health().then(v => setApi(v ? '● API live v' + v : '● API error')).catch(() => setApi('● API waking…')); }, []);
   useEffect(() => { if (st !== 'loading') return; const t0 = Date.now(), i = setInterval(() => setSec(Math.round((Date.now() - t0) / 1000)), 1000); return () => clearInterval(i); }, [st]);
   const go = p => { setPos({lat: p[1], lon: p[2]}); setF({...f, dt: p[3], ev: p[4], cr: p[5]}); setFly(x => x + 1); };
   async function run() {
@@ -34,13 +35,14 @@ export default function App() {
       <label>REPORT LANGUAGE</label><select value={f.lg} onChange={set('lg')}><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select>
       <button id="go" disabled={st === 'loading'} onClick={run}>{st === 'loading' ? 'Analysing…' : 'Run satellite analysis'}</button>
       {st === 'error' && <div id="er">⚠ {err}</div>}
-      {st === 'done' && <div id="st" style={{marginTop: 8}}>✔ Analysis complete. See results panel.</div>}
+      {st === 'done' && d && <div className="m" style={{marginTop: 10}}><div><small>LOSS</small><b>{d.loss_pct}%</b><span>{d.severity}</span></div><div><small>SCENES</small><b>{d.images_used}</b><span>{d.confidence} confidence</span></div></div>}
+      {api.includes('v') && parseFloat(api.split('v')[1]) < 4 && <p className="nt" style={{color: '#f59e0b'}}>⚠ Old backend detected ({api}). Redeploy on Render: Manual Deploy → Clear build cache &amp; deploy.</p>}
       <label style={{marginTop: 14}}>EXAMPLE LOCATIONS</label>
       {EX.map(p => <button key={p[0]} className="gh" onClick={() => go(p)}>{p[0]}</button>)}
       <button className="gh" onClick={() => navigator.geolocation.getCurrentPosition(p => { setPos({lat: p.coords.latitude, lon: p.coords.longitude}); setFly(x => x + 1); }, () => setErr('Location permission blocked'))}>📍 My location</button>
       <p className="nt" style={{marginTop: 14}}>Models: Theil–Sen counterfactual, bootstrap CI, change-point detection, k-means damage zones. <span id="st">{api}</span></p>
       {d && <details><summary>Raw API response (debug)</summary><pre>{JSON.stringify({...d, zones: d.zones ? '[grid hidden]' : null, forecast: '[hidden]'}, null, 1).slice(0, 1800)}</pre></details>}
     </aside>
-    {d && <Results d={d} wx={wx} f={f} pos={pos}/>}
+    {d && <Boundary key={d.images_used + f.dt}><Results d={d} wx={wx} f={f} pos={pos}/></Boundary>}
   </>);
 }

@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, field_validator
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("fasalproof")
 STAC = "https://earth-search.aws.element84.com/v1/search"
-app = FastAPI(title="FasalProof API", version="2.0")
+app = FastAPI(title="FasalProof API", version="4.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class Query(BaseModel):
@@ -107,7 +107,7 @@ def stac_search(body):
 
 @app.get("/")
 @app.get("/health")
-def health(): return {"status": "ok", "app": "FasalProof", "version": "2.0"}
+def health(): return {"status": "ok", "app": "FasalProof", "version": "4.1"}
 
 @app.post("/analyze")
 def analyze(q: Query, request: Request):
