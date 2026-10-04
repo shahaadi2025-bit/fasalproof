@@ -1,27 +1,76 @@
-// Indicative PMFBY facts. Farmer premium: 2% Kharif food/oilseed, 1.5% Rabi food/oilseed, 5% commercial/horticultural.
+// SOURCES. Growth-stage lengths (initial, development, mid, late; days) = FAO Irrigation & Drainage Paper 56, Table 11.
+// Kc (ini, mid, end) = FAO-56 Table 12 (ranges -> midpoint). Premium caps, claim types and time limits = PMFBY operational guidelines
+// (PIB / Ministry of Agriculture / Rajya Sabha answers). Stage lengths are regional averages: use local data where available.
+const C = (cls, st, kc, reg, proxy = false) => ({cls, st, kc, reg, proxy});
 export const CROPS = {
-  Soybean: {season: 'Kharif', days: 105, prem: 2}, Rice: {season: 'Kharif', days: 125, prem: 2}, Maize: {season: 'Kharif', days: 110, prem: 2},
-  Cotton: {season: 'Kharif', days: 170, prem: 5}, Wheat: {season: 'Rabi', days: 125, prem: 1.5}, Gram: {season: 'Rabi', days: 110, prem: 1.5}
+  Wheat: C('food', [15, 25, 50, 30], [.3, 1.15, .3], 'FAO-56 T11: Central India (Nov)'),
+  Rice: C('food', [30, 30, 60, 30], null, 'FAO-56 T11: Tropics'),
+  Maize: C('food', [20, 35, 40, 30], [.3, 1.2, .35], 'FAO-56 T11: India (Oct) / Nigeria (Jun)'),
+  Sorghum: C('food', [20, 35, 40, 30], [.3, 1.05, .55], 'FAO-56 T11: USA / Pakistan / Med.'),
+  'Millet (Bajra)': C('food', [15, 25, 40, 25], [.3, 1, .3], 'FAO-56 T11: Pakistan (Jun)'),
+  'Green gram (Moong)': C('food', [20, 30, 30, 20], [.4, 1.05, .35], 'FAO-56 T11: Mediterranean (Mar)'),
+  Lentil: C('food', [25, 35, 70, 40], [.4, 1.1, .3], 'FAO-56 T11: Arid region (Oct/Nov)'),
+  'Gram (Chickpea)': C('food', [15, 25, 35, 20], [.4, 1, .35], 'PROXY: stage lengths of dry beans (Pakistan); Kc of chick pea', true),
+  Soybean: C('oil', [15, 15, 40, 15], [.4, 1.15, .5], 'FAO-56 T11: Tropics (Dec)'),
+  Groundnut: C('oil', [25, 35, 45, 25], [.4, 1.15, .6], 'FAO-56 T11: Dry West Africa'),
+  Sunflower: C('oil', [25, 35, 45, 25], [.35, 1.075, .35], 'FAO-56 T11: Mediterranean / California'),
+  Sesame: C('oil', [20, 30, 40, 20], [.35, 1.1, .25], 'FAO-56 T11: China (Jun)'),
+  Castor: C('oil', [25, 40, 65, 50], [.35, 1.15, .55], 'FAO-56 T11: Semi-arid (Mar)'),
+  Safflower: C('oil', [35, 55, 60, 40], [.35, 1.075, .25], 'FAO-56 T11: Arid region (Oct/Nov)'),
+  Cotton: C('comm', [30, 50, 60, 55], [.35, 1.15, .6], 'FAO-56 T11: Egypt / Pakistan / California'),
+  Sugarcane: C('comm', [35, 60, 190, 120], [.4, 1.25, .75], 'FAO-56 T11: Low latitudes (virgin cane)'),
+  Potato: C('hort', [25, 30, 45, 30], [.5, 1.15, .75], 'FAO-56 T11: (Semi) arid, Nov planting'),
+  'Onion (dry)': C('hort', [15, 25, 70, 40], [.7, 1.05, .75], 'FAO-56 T11: Mediterranean (Apr)'),
+  Tomato: C('hort', [30, 40, 40, 25], [.6, 1.15, .8], 'FAO-56 T11: Arid region (Jan)'),
+  Brinjal: C('hort', [30, 40, 40, 20], [.6, 1.05, .9], 'FAO-56 T11: Arid region (Oct)'),
+  Cauliflower: C('hort', [35, 50, 40, 15], [.7, 1.05, .95], 'FAO-56 T11: California desert (Sep)')
 };
-export const ELIG = {
-  Flood: {ok: true, mode: 'Localised calamity (inundation)', txt: 'Covered as a localised calamity. Your plot is assessed individually after you intimate within 72 hours.'},
-  Hailstorm: {ok: true, mode: 'Localised calamity (hailstorm)', txt: 'Covered as a localised calamity. Your plot is assessed individually after you intimate within 72 hours.'},
-  Drought: {ok: false, mode: 'Area approach / mid-season adversity', txt: 'Usually handled at village or block level (area approach, or mid-season adversity notified by the state), not as an individual plot claim. Ask your bank or agriculture office.'},
-  'Pest attack': {ok: false, mode: 'Yield-based only', txt: 'Pests and diseases are generally considered only through yield-based assessment (crop-cutting experiments), not as an individual plot claim.'}
-};
-const S = [[0, .1, 'Germination / emergence', false], [.1, .4, 'Vegetative growth', false], [.4, .6, 'Flowering / reproductive', true], [.6, .85, 'Grain / pod / boll filling', true], [.85, 1.02, 'Maturity / harvest-ready', false]];
+export const CLS = {food: 'Food grain / pulse', oil: 'Oilseed', comm: 'Annual commercial', hort: 'Annual horticultural'};
+export const total = c => c.st.reduce((a, b) => a + b, 0);
+Object.values(CROPS).forEach(c => { c.days = total(c); });
+export const CAL = ['Flood', 'Hailstorm', 'Cloudburst', 'Landslide', 'Natural fire / lightning', 'Cyclone / storm', 'Unseasonal rain', 'Drought / dry spell', 'Pest / disease'];
+export const seasonOf = d => { const m = new Date(d).getMonth() + 1; return m >= 6 && m <= 10 ? 'Kharif' : (m >= 11 || m <= 3) ? 'Rabi' : 'Summer / Zaid'; };
+export function meta(f) {
+  const c = CROPS[f.cr] || CROPS.Wheat, s = seasonOf(f.sow || f.dt);
+  const p = (c.cls === 'comm' || c.cls === 'hort') ? 5 : s === 'Kharif' ? 2 : s === 'Rabi' ? 1.5 : null;
+  return {c, season: s, prem: p, premTxt: p == null ? 'state-notified (summer crops)' : p + '% of sum insured (max, or actuarial rate if lower)'};
+}
+const KEYS = ['Initial (establishment)', 'Development (canopy growth)', 'Mid-season (full cover, flowering, yield formation)', 'Late season (maturity, senescence)'];
 export function stage(crop, sow, loss) {
-  if (!sow) return null;
-  const d = Math.round((new Date(loss) - new Date(sow)) / 864e5), p = d / CROPS[crop].days;
-  if (d < 0) return {d, label: 'Loss date is BEFORE the sowing date. Check the dates.', bad: true};
-  if (p > 1.02) return {d, label: 'After maturity (check the post-harvest loss window, about 14 days after harvest)', post: true};
-  const x = S.find(s => p >= s[0] && p < s[1]) || S[4];
-  return {d, label: x[2], critical: x[3]};
+  if (!sow) return null; const c = CROPS[crop], T = total(c), d = Math.round((new Date(loss) - new Date(sow)) / 864e5);
+  if (d < 0) return {d, label: 'Loss date is BEFORE the sowing date. Check the dates.', bad: true, left: null};
+  if (d > T) return {d, label: `After the typical season length (${T} d): crop is mature or harvested`, post: true, left: 0};
+  let a = 0; for (let i = 0; i < 4; i++) { a += c.st[i]; if (d <= a) return {d, label: KEYS[i], idx: i, critical: i === 2, left: T - d}; }
+}
+export const kc = (c, d) => { if (!c.kc || d < 0) return null; const [a, b, m, l] = c.st, [k0, k1, k2] = c.kc;
+  if (d <= a) return k0; if (d <= a + b) return k0 + (d - a) / b * (k1 - k0); if (d <= a + b + m) return k1; return k1 + Math.min(1, (d - a - b - m) / l) * (k2 - k1); };
+const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+function pearson(x, y) { const mx = mean(x), my = mean(y); let n = 0, dx = 0, dy = 0; x.forEach((v, i) => { n += (v - mx) * (y[i] - my); dx += (v - mx) ** 2; dy += (y[i] - my) ** 2; }); return dx && dy ? n / Math.sqrt(dx * dy) : null; }
+// Experimental: compares the observed NDVI trajectory with the crop's FAO Kc canopy curve (a proxy for canopy development).
+export function phenology(d, f) {
+  const c = CROPS[f.cr]; if (!f.sow || !c?.kc) return null; const T = total(c);
+  const pts = d.series.map(p => ({date: p.date, n: p.ndvi, d: Math.round((new Date(p.date) - new Date(f.sow)) / 864e5)})).filter(p => p.d >= 0 && p.d <= T);
+  const pre = pts.filter(p => p.date < f.dt), post = pts.filter(p => p.date >= f.dt);
+  const r = pts.length >= 4 ? pearson(pts.map(p => p.n), pts.map(p => kc(c, p.d))) : null; let adj = null, obs = null, exp = null;
+  if (pre.length && post.length) { obs = mean(post.map(p => p.n)) / Math.max(...pre.map(p => p.n)); exp = mean(post.map(p => kc(c, p.d))) / Math.max(...pre.map(p => kc(c, p.d))); adj = Math.max(0, Math.min(100, (1 - obs / exp) * 100)); }
+  return {r, n: pts.length, adj, obs, exp};
+}
+// Claim route per PMFBY guidelines (localised / post-harvest / area-yield / mid-season adversity).
+export function routeFor(f, st) {
+  const ev = f.ev, since = f.hv ? (new Date(f.dt) - new Date(f.hv)) / 864e5 : null, inPost = since !== null && since >= 0 && since <= 14, nearHarvest = st && st.left != null && st.left <= 15 && !st.post;
+  const mid = nearHarvest ? 'Mid-season adversity advance is NOT invoked within 15 days before normal harvest.' : 'Mid-season adversity: if the state notifies expected yield below 50%, an on-account payment of up to 25% of sum insured can be released.';
+  if (['Hailstorm', 'Cyclone / storm', 'Unseasonal rain'].includes(ev) && inPost) return {ind: true, ok: true, title: 'Post-harvest loss (individual farm)', txt: `Harvested ${Math.round(since)} day(s) before the loss. Covered up to 14 days after harvest for crop left cut and spread to dry. Intimate within 72 hours.`};
+  if (ev === 'Unseasonal rain') return {ind: true, ok: false, title: 'Post-harvest peril', txt: 'Unseasonal rain is covered as a post-harvest peril (up to 14 days after harvest, crop cut and spread). Enter the harvest date to check your window.'};
+  if (['Hailstorm', 'Cloudburst', 'Landslide', 'Natural fire / lightning'].includes(ev)) return {ind: true, ok: true, title: 'Localised calamity (individual farm)', txt: 'Covered when it affects isolated farms in a notified area. Assessed plot by plot. Intimate within 72 hours.'};
+  if (ev === 'Flood') return {ind: true, ok: true, title: 'Inundation: localised, or area-yield if widespread', txt: `Inundation of isolated farms is an individual (localised) claim: intimate within 72 hours. A flood over most of the notified unit is assessed through area-yield (crop-cutting) instead. ${mid}`};
+  if (ev === 'Cyclone / storm') return {ind: false, ok: true, title: 'Standing crop: area-yield approach', txt: 'Storm and cyclone losses to a standing crop are assessed on the area-yield approach (crop-cutting experiments). Individual claims apply only post-harvest (enter the harvest date).'};
+  if (ev === 'Drought / dry spell') return {ind: false, ok: true, title: 'Area-yield approach (not an individual plot claim)', txt: `Drought and dry spells are settled at insurance-unit level from crop-cutting yields. ${mid}`};
+  return {ind: false, ok: true, title: 'Area-yield approach (not an individual plot claim)', txt: 'Widespread pest and disease losses are covered through area-yield assessment, not as an individual plot claim.'};
 }
 export const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
 export function claimInfo(d, f) {
-  const c = CROPS[f.cr] || CROPS.Soybean, ha = (+f.ar || 0) * 0.4047, si = +f.si || 0, L = d.loss_pct, ci = d.stats?.ci || [L, L];
-  const dl = new Date(new Date(f.dt).getTime() + 72 * 36e5);
-  return {c, ha, si, prem: si * ha * c.prem / 100, est: si * ha * L / 100, lo: si * ha * ci[0] / 100, hi: si * ha * ci[1] / 100,
-    st: stage(f.cr, f.sow, f.dt), el: ELIG[f.ev], dl, open: Date.now() <= dl, lateDays: Math.max(0, Math.round((Date.now() - dl) / 864e5)), base: d.baseline_ndvi};
+  const m = meta(f), ha = (+f.ar || 0) * 0.4047, si = +f.si || 0, L = d.loss_pct, ci = d.stats?.ci || [L, L], st = stage(f.cr, f.sow, f.dt);
+  const dl = new Date(new Date(f.dt).getTime() + 72 * 36e5), p = m.prem || 0;
+  return {c: {...m.c, season: m.season, prem: p, premTxt: m.premTxt}, ha, si, prem: si * ha * p / 100, est: si * ha * L / 100, lo: si * ha * ci[0] / 100, hi: si * ha * ci[1] / 100,
+    st, route: routeFor(f, st), dl, open: Date.now() <= dl, lateDays: Math.max(0, Math.round((Date.now() - dl) / 864e5)), base: d.baseline_ndvi};
 }

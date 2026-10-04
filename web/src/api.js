@@ -18,9 +18,9 @@ export async function weather(lat, lon, ld, ev) {
   const r30 = days.reduce((a, x) => a + x.p, 0), hot = Math.max(0, ...days.slice(-10).map(x => x.x));
   let ok = null, msg = 'Weather corroboration is not applicable to this calamity type, or data is unavailable.';
   if (days.length) {
-    if (ev === 'Flood') { ok = r3 >= 60; msg = `Rainfall within ±3 days of the loss: ${r3.toFixed(0)} mm. ${ok ? 'Consistent with flooding.' : 'Below typical flood level.'}`; }
+    if (['Flood', 'Cloudburst', 'Cyclone / storm', 'Unseasonal rain', 'Landslide'].includes(ev)) { ok = r3 >= 60; msg = `Rainfall within ±3 days of the loss: ${r3.toFixed(0)} mm. ${ok ? 'Consistent with flooding.' : 'Below typical flood level.'}`; }
     else if (ev === 'Hailstorm') { const mx = Math.max(0, ...near.map(x => x.p)); ok = mx >= 20; msg = `Peak daily rain near the date: ${mx.toFixed(0)} mm. ${ok ? 'Storm activity detected.' : 'No strong storm signal.'}`; }
-    else if (ev === 'Drought') { ok = r30 < 40 || hot >= 40; msg = `30-day rainfall ${r30.toFixed(0)} mm, peak temperature ${hot.toFixed(0)}°C. ${ok ? 'Dry/hot conditions confirmed.' : 'Not clearly dry.'}`; }
+    else if (ev === 'Drought / dry spell') { ok = r30 < 40 || hot >= 40; msg = `30-day rainfall ${r30.toFixed(0)} mm, peak temperature ${hot.toFixed(0)}°C. ${ok ? 'Dry/hot conditions confirmed.' : 'Not clearly dry.'}`; }
   }
   return {days, msg, pts: ok === null ? 15 : ok ? 30 : 8};
 }

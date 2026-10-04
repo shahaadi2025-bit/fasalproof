@@ -31,3 +31,8 @@ NDVI is an indicator, not an official assessment; cloud cover can limit images; 
 - Reports in English / Hindi / Marathi, printable PDF, QR code, WhatsApp share, read-aloud
 - Hardened API: validation, cache, rate limit, retries, parallel reads
 - Plot-level cloud masking (SCL), flood-water detection (NDWI), radar score breakdown, analyst narrative, offline-capable PWA
+
+## Data sources (no placeholder data)
+- PMFBY premium caps (2% Kharif, 1.5% Rabi food and oilseed; 5% annual commercial/horticultural), claim types, 72-hour intimation, 14-day post-harvest window, 25% prevented-sowing and mid-season caps: PMFBY operational guidelines (PIB, Ministry of Agriculture, Rajya Sabha answers).
+- Crop growth-stage lengths and Kc values: FAO Irrigation & Drainage Paper 56, Tables 11 and 12 (regional averages; use local data where available).
+- Not hard-coded because they vary by state and policy: sum insured (Scale of Finance), notified crops, enrolment cut-off dates. Users enter their policy values.

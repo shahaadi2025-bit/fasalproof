@@ -3,10 +3,10 @@ import MapView from './MapView';
 import Results from './Results';
 import Boundary from './Boundary';
 import {analyze, health, weather} from './api';
-import {CROPS} from './crops';
-const EX = [['Maharashtra', 18.99, 75.76, '2025-11-20', 'Flood', 'Soybean'], ['Punjab', 30.90, 75.85, '2025-04-12', 'Hailstorm', 'Wheat'], ['Rajasthan', 26.91, 75.79, '2025-12-15', 'Drought', 'Cotton']];
+import {CROPS, CAL, meta} from './crops';
+const EX = [['Maharashtra', 18.99, 75.76, '2025-11-20', 'Flood', 'Soybean'], ['Punjab', 30.90, 75.85, '2025-04-12', 'Hailstorm', 'Wheat'], ['Rajasthan', 26.91, 75.79, '2025-12-15', 'Drought / dry spell', 'Cotton']];
 export default function App() {
-  const [f, setF] = useState({nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', si: '40000', hs: 100, db: 90, da: 45, ctrl: false});
+  const [f, setF] = useState({nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', hv: '', si: '40000', hs: 100, db: 90, da: 45, ctrl: false});
   const [pos, setPos] = useState({lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0), [q, setQ] = useState(''), [hits, setHits] = useState([]);
   const [st, setSt] = useState('idle'), [err, setErr] = useState(''), [d, setD] = useState(null), [cd, setCd] = useState(null), [wx, setWx] = useState(null), [sec, setSec] = useState(0), [api, setApi] = useState('…');
   const set = k => e => setF({...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value});
@@ -49,12 +49,13 @@ export default function App() {
         <div><label>FARMER</label><input value={f.nm} onChange={set('nm')}/></div><div><label>VILLAGE, DISTRICT</label><input value={f.vl} onChange={set('vl')}/></div>
         <div><label>CROP</label><select value={f.cr} onChange={set('cr')}>{Object.keys(CROPS).map(x => <option key={x}>{x}</option>)}</select></div>
         <div><label>AREA (ACRES)</label><input type="number" min=".5" step=".5" value={f.ar} onChange={set('ar')}/></div>
-        <div><label>CALAMITY</label><select value={f.ev} onChange={set('ev')}>{['Flood', 'Drought', 'Hailstorm', 'Pest attack'].map(x => <option key={x}>{x}</option>)}</select></div>
+        <div><label>CALAMITY</label><select value={f.ev} onChange={set('ev')}>{CAL.map(x => <option key={x}>{x}</option>)}</select></div>
         <div><label>DATE OF LOSS</label><input type="date" value={f.dt} onChange={set('dt')}/></div>
         <div><label>SOWING DATE</label><input type="date" value={f.sow} onChange={set('sow')}/></div>
+        <div><label>HARVEST DATE (IF HARVESTED)</label><input type="date" value={f.hv} onChange={set('hv')}/></div>
         <div><label>SUM INSURED (₹/HA)</label><input type="number" min="0" step="1000" value={f.si} onChange={set('si')}/></div>
       </div>
-      <p className="nt" style={{margin: '8px 0 0'}}>{CROPS[f.cr].season} crop · PMFBY farmer premium {CROPS[f.cr].prem}%. Enter your district's notified sum insured.</p>
+      <p className="nt" style={{margin: '8px 0 0'}}>{meta(f).season} · {meta(f).premTxt}. Enter the sum insured from your policy.</p>
       <details open><summary>⚙ Advanced parameters</summary>
         <div className="r2">
           <div><label>PLOT HALF-SIZE (m)</label><input type="number" min="30" max="500" step="10" value={f.hs} onChange={set('hs')}/></div>
