@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FasalProof – Satellite Proof for Crop Insurance</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#071510">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#00e676;--r:#ff5252;--bg:#071510;--gl:rgba(255,255,255,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:#e8f5e9;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 20% 20%,#0d3b2a,transparent 50%),radial-gradient(circle at 80% 70%,#0b2f4a,transparent 50%);animation:sh 12s ease-in-out infinite alternate}
+@keyframes sh{to{filter:hue-rotate(40deg) brightness(1.2)}}
+.dot{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--g);opacity:.4;animation:fl linear infinite;z-index:-1}
+@keyframes fl{from{transform:translateY(105vh)}to{transform:translateY(-10vh)}}
+.hero{text-align:center;padding:48px 16px 20px}
+.earth{width:150px;height:150px;margin:auto;position:relative}
+.earth .p{position:absolute;inset:25px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#4fc3f7,#0d47a1 60%,#052b5e);box-shadow:0 0 40px #29b6f6;animation:pulse 3s infinite}
+.earth .o{position:absolute;inset:0;animation:spin 6s linear infinite}.earth .o:before{content:"🛰️";position:absolute;top:-6px;left:50%;font-size:28px}
+.earth .l{position:absolute;inset:25px;border-radius:50%;background:radial-gradient(circle at 60% 55%,#2e7d32 0 18%,transparent 19%),radial-gradient(circle at 35% 65%,#43a047 0 12%,transparent 13%)}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{box-shadow:0 0 70px #4fc3f7}}
+h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800;margin:14px 0 4px;background:linear-gradient(90deg,#00e676,#29b6f6,#00e676);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gr 4s linear infinite}
+@keyframes gr{to{background-position:200%}}
+.tag{color:#a5d6a7;max-width:620px;margin:auto}
+.w{max-width:960px;margin:auto;padding:12px 16px 40px}
+.card{background:var(--gl);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);border-radius:18px;padding:18px;margin:16px 0;animation:up .7s both}
+@keyframes up{from{opacity:0;transform:translateY(30px)}}
+#map{height:300px;border-radius:12px;margin-bottom:12px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{font-size:.75rem;color:#81c784}input,select{width:100%;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.35);color:#fff;font:inherit}
+button{margin-top:14px;padding:12px 22px;border:0;border-radius:30px;font:600 1rem Poppins;color:#04210f;background:linear-gradient(90deg,#00e676,#69f0ae);cursor:pointer;transition:.2s;box-shadow:0 0 18px rgba(0,230,118,.5)}
+button:hover{transform:translateY(-2px) scale(1.04)}button.s{background:none;color:var(--g);border:1px solid var(--g);box-shadow:none}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.k div{text-align:center;padding:14px;border-radius:14px;background:rgba(0,0,0,.3);animation:up .8s both}
+.k b{display:block;font-size:2rem}.red{color:var(--r)}
+.gauge{height:14px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden;margin:14px 0}
+.gauge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00e676,#ffeb3b,#ff5252);transition:width 2s cubic-bezier(.2,.8,.2,1)}
+.radar{display:none;text-align:center;padding:20px}.radar.on{display:block}
+.radar span{display:inline-block;width:90px;height:90px;border-radius:50%;border:2px solid var(--g);background:conic-gradient(from 0deg,rgba(0,230,118,.7),transparent 40%);animation:spin 1.2s linear infinite}
+table{width:100%;border-collapse:collapse}td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.1);font-size:.9rem}td:first-child{color:#81c784;width:40%}
+.note{font-size:.78rem;color:#a5d6a7;border-left:3px solid var(--g);padding-left:10px}.hid{display:none}
+.badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:.8rem;font-weight:600;background:var(--r);color:#fff}
+.th{display:flex;gap:10px;flex-wrap:wrap}.th figure{margin:0;flex:1;min-width:150px;text-align:center;font-size:.8rem}.th img{width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.2)}
+.ex{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.ex ul{flex:1;min-width:220px;margin:0;padding-left:18px;font-size:.88rem}#qr{background:#fff;padding:6px;border-radius:8px;display:inline-block}
+@media print{body{background:#fff;color:#000}.bg,.dot,.np{display:none}.card{border:1px solid #888}td:first-child{color:#333}}
+</style><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:Inter,system-ui,sans-serif;background:#05080d;padding-top:58px}
+h1,h2,h3,h4,.k b,.brand,.stats b{font-family:'Space Grotesk',sans-serif}
+.bg{background:radial-gradient(900px 500px at 12% 8%,rgba(0,229,160,.2),transparent),radial-gradient(800px 600px at 92% 85%,rgba(77,159,255,.2),transparent),#05080d;animation:none}
+.bg:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(circle at 50% 25%,#000,transparent 72%);mask-image:radial-gradient(circle at 50% 25%,#000,transparent 72%)}
+.card{background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1);animation:up .7s backwards;transition:transform .2s ease,box-shadow .3s}
+.card:hover{box-shadow:0 28px 70px rgba(0,229,160,.12),inset 0 1px 0 rgba(255,255,255,.14)}
+h3{letter-spacing:.2px}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 18px;background:rgba(5,8,13,.72);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}
+nav .brand{font-weight:700;font-size:1.1rem;margin-right:auto}nav a{color:#a8c7b6;text-decoration:none;font-size:.85rem;transition:.2s}nav a:hover{color:#00e5a0}
+nav button{margin:0;padding:6px 11px;font-size:.8rem;box-shadow:none;background:rgba(255,255,255,.1);color:#e8f5e9;border-radius:20px}
+#st{font-size:.75rem;color:#ffb74d}#st.on{color:#00e5a0}
+@media(max-width:640px){nav a{display:none}}
+#pg{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:linear-gradient(90deg,#00e5a0,#4d9fff)}
+#cg{position:fixed;width:420px;height:420px;margin:-210px;border-radius:50%;pointer-events:none;z-index:-1;background:radial-gradient(circle,rgba(0,229,160,.14),transparent 65%);transition:left .12s,top .12s}
+.stats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:22px 0 4px}
+.stats div{min-width:110px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:.75rem;color:#a8c7b6}
+.stats b{display:block;font-size:1.6rem;color:#00e5a0}
+.pre{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:.85rem}.pre button{margin:0;padding:6px 14px;font-size:.8rem}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center}
+#toast div{background:#0d2a20;border:1px solid #00e5a0;color:#e8f5e9;padding:9px 18px;border-radius:30px;font-size:.85rem;animation:up .3s}
+.hs button{margin:4px 6px 0 0;padding:6px 14px;font-size:.8rem}
+body.lt{background:#eef5f1;color:#0c2218}.lt .bg{opacity:.3}.lt .card{background:#fff;border-color:#d5e6dc;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.lt input,.lt select,.lt textarea{background:#f3f8f5!important;color:#0c2218!important;border-color:#cfe0d6!important}.lt td,.lt label,.lt .tag,.lt .note,.lt .stats div{color:#2e6b4a}.lt nav{background:rgba(255,255,255,.85)}.lt nav a{color:#2e6b4a}.lt .k div{background:#f3f8f5}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script></head><body><div class="bg"></div><div id="pg"></div><div id="cg"></div><div id="toast"></div>
+<nav><span class="brand">🛰️ FasalProof</span><a href="#sec1">Analyse</a><a href="#out">Results</a><a href="#secH">History</a><a href="#secB">Bulk</a><a href="#secM">Method</a><span id="st">● checking</span><button id="th2" title="Theme (T)">◐</button><button id="fz" title="Text size">A+</button></nav>
+<div class="hero np"><div class="earth"><div class="p"></div><div class="l"></div><div class="o"></div></div>
+<h1>FasalProof</h1><p class="tag">Satellite proof for every farmer's crop insurance claim. Free Sentinel-2 data, zero cost, in your language.</p><div class="stats"><div><b data-n="0" data-s="₹">0</b>cost to farmer</div><div><b data-n="10" data-s=" m">0</b>satellite resolution</div><div><b data-n="5" data-s=" days">0</b>revisit time</div><div><b data-n="3" data-s=" languages">0</b>supported</div></div></div>
+<div class="w">
+<div class="card np" id="sec1"><b>1. Tap your field on the satellite map</b><div id="map"></div><div class="pre"><span>⚡ Try an example:</span><button class="s" data-p="18.99,75.76,2025-11-20,Flood,Soybean">Maharashtra</button><button class="s" data-p="30.90,75.85,2025-04-12,Hailstorm,Wheat">Punjab</button><button class="s" data-p="26.91,75.79,2025-12-15,Drought,Cotton">Rajasthan</button></div>
+<div class="g">
+<div><label>Farmer</label><input id="nm" value="Ramesh Patil"></div>
+<div><label>Village, District</label><input id="vl" value="Beed, Maharashtra"></div>
+<div><label>Crop</label><select id="cr"><option>Soybean</option><option>Cotton</option><option>Wheat</option><option>Rice</option><option>Sugarcane</option></select></div>
+<div><label>Area (acres)</label><input id="ar" type="number" value="3" min=".5" step=".5"></div>
+<div><label>Calamity</label><select id="ev"><option>Flood</option><option>Drought</option><option>Hailstorm</option><option>Pest attack</option></select></div>
+<div><label>Date of loss</label><input id="dt" type="date" value="2025-09-20"></div>
+<div><label>Language</label><select id="lg"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></div></div>
+<button id="go">🛰️ Analyse my field</button> <button class="s" id="gl">📍 Use my location</button> <span id="err" class="red"></span></div>
+<div class="radar card" id="rd"><span></span><p>Scanning satellite images…</p></div>
+<div id="out" class="hid">
+<div class="card"><div class="k" id="kp"></div><div class="gauge"><i id="gb"></i></div><span class="badge" id="sv"></span> <small id="cf"></small>
+<h3 id="ct"></h3><canvas id="ch" height="130"></canvas></div>
+<div class="card"><h3>🧠 Claim strength &amp; weather proof</h3><div class="ex"><div id="ring"></div><ul id="ins"></ul><div id="qr" title="Scan to verify"></div></div><div class="ex" style="margin:14px 0"><canvas id="rr" style="max-width:270px"></canvas><div style="flex:1;min-width:220px"><h4 style="margin:0 0 6px">🤖 AI-style analyst summary</h4><p id="an" class="note" style="min-height:90px"></p><small>🌊 Flood water extent increase</small><div class="gauge"><i id="wg" style="background:linear-gradient(90deg,#29b6f6,#0d47a1)"></i></div><small id="wt"></small></div></div><canvas id="wc" height="90"></canvas><div class="th" id="th"></div></div>
+<div class="card"><h3 id="rt"></h3><table id="tb"></table><p class="note" id="nt"></p>
+<button id="pr" class="np">⬇ Download claim report (PDF)</button> <button class="s np" id="sh">Copy summary</button> <button class="s np" id="ex">🖼 Save as image</button> <button class="s np" id="wa">Send on WhatsApp</button> <button class="s np" id="ls">🔊 Read aloud</button></div></div>
+<div class="card np" id="secH"><h3>🕘 Recent analyses</h3><div class="hs" id="hs"><small>Nothing yet. Run an analysis.</small></div></div>
+<div class="card np" id="secB"><h3>🏦 Bank / Insurer bulk mode</h3><p class="note">Paste one plot per line: <code>name,lat,lon,loss-date</code>. Screens hundreds of claims for fast triage. Results can be downloaded as CSV.</p>
+<textarea id="bt" rows="4" style="width:100%;padding:9px;border-radius:10px;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.2)">Ramesh,18.99,75.76,2025-11-20
+Gurpreet,30.90,75.85,2025-04-12
+Sunita,26.91,75.79,2025-12-15</textarea>
+<button id="bg">▶ Screen all claims</button> <button class="s" id="bd">⬇ Download CSV</button>
+<div class="gauge"><i id="bp"></i></div><table><tbody id="bb"></tbody></table></div>
+<div class="card np" id="secM"><h3>🔬 Methodology &amp; honest limitations</h3><p class="note">NDVI = (NIR−Red)/(NIR+Red) from Sentinel-2 (10 m). We compare the plot's peak pre-loss health with the average after the loss date, after masking clouds and shadows per pixel. NDWI flags standing water. Rainfall and temperature come from Open-Meteo reanalysis. Limits: NDVI cannot tell which crop is growing, small plots are approximated by a 200 m square, and results are supporting evidence, not an official crop-cutting assessment. Next step: integrate state land-record (Bhulekh) boundaries.</p></div>
+<p class="note np" id="mode"></p></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const API=""; // <-- paste your Render URL here, e.g. "https://fasalproof-api.onrender.com" (empty = demo simulation)
+const $=i=>document.getElementById(i);
+for(let i=0;i<22;i++){const d=document.createElement('div');d.className='dot';d.style.cssText=`left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:-${Math.random()*20}s`;document.body.appendChild(d)}
+const T={en:{rep:"Crop Loss Evidence Report",chart:"Vegetation health (NDVI) from satellite",loss:"Vegetation loss",el:"Claim-eligible area",rows:["Farmer","Location","Crop","Area","Calamity","Date of loss","GPS","Source"],warn:"PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This is supporting evidence, not an official assessment."},
+hi:{rep:"फसल नुकसान साक्ष्य रिपोर्ट",chart:"उपग्रह से फसल स्वास्थ्य (NDVI)",loss:"फसल नुकसान",el:"दावा योग्य क्षेत्र",rows:["किसान","स्थान","फसल","क्षेत्र","आपदा","नुकसान की तारीख","GPS","स्रोत"],warn:"PMFBY: स्थानीय आपदा की सूचना 72 घंटे में 14447, बैंक या फसल बीमा ऐप पर दें। यह सहायक साक्ष्य है, आधिकारिक आकलन नहीं।"},
+mr:{rep:"पीक नुकसान पुरावा अहवाल",chart:"उपग्रहावरून पिकाचे आरोग्य (NDVI)",loss:"पीक नुकसान",el:"दावा पात्र क्षेत्र",rows:["शेतकरी","ठिकाण","पीक","क्षेत्र","आपत्ती","नुकसानाची तारीख","GPS","स्रोत"],warn:"PMFBY: स्थानिक आपत्तीची माहिती 72 तासांत 14447, बँक किंवा पीक विमा ॲपवर द्या. हा पूरक पुरावा आहे, अधिकृत मूल्यांकन नाही."}};
+let pos={lat:18.99,lon:75.76},chart,last="";
+const map=L.map('map').setView([pos.lat,pos.lon],15);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri, Maxar'}).addTo(map);
+let box=L.rectangle([[0,0],[0,0]],{color:'#00e676',weight:2}).addTo(map);
+function pin(lat,lon){pos={lat,lon};const d=100/111320,e=d/Math.cos(lat*Math.PI/180);box.setBounds([[lat-d,lon-e],[lat+d,lon+e]])}
+pin(pos.lat,pos.lon);map.on('click',e=>pin(e.latlng.lat,e.latlng.lng));
+function sim(){const r=(()=>{let h=7;return()=>(h=(h*16807)%2147483647)/2147483647})(),ld=new Date($('dt').value),s={Flood:.55,Drought:.45,Hailstorm:.65,"Pest attack":.35}[$('ev').value]*(.85+.3*r()),pts=[];
+ for(let d=-60;d<=45;d+=5){const t=new Date(ld.getTime()+d*864e5),f=.2+.55*Math.sin(Math.PI*(d+60)/150)+.02*r();pts.push({date:t.toISOString().slice(0,10),ndvi:+(d<0?f:f*(1-s*Math.min(1,d/10+.3))).toFixed(3),ndwi:+(-.3+(d>=0&&$('ev').value==='Flood'?.6*Math.min(1,d/10+.3):0)+.02*r()).toFixed(3)})}
+ const b=pts.filter(p=>p.date<$('dt').value).map(p=>p.ndvi),a=pts.filter(p=>p.date>=$('dt').value).map(p=>p.ndvi),B=Math.max(...b),P=a.reduce((x,y)=>x+y)/a.length,l=+((1-P/B)*100).toFixed(1);
+ return{series:pts,baseline_ndvi:+B.toFixed(2),post_ndvi:+P.toFixed(2),loss_pct:l,severity:l>=50?'severe':l>=25?'moderate':'low',confidence:'demo',water_pct:$('ev').value==='Flood'?+(25+20*r()).toFixed(1):0,images_used:pts.length,source:'Simulated demo data'}}
+function count(el,to,suf=''){let s=null;const f=t=>{s=s||t;const p=Math.min(1,(t-s)/1500);el.textContent=(to*p).toFixed(1)+suf;p<1&&requestAnimationFrame(f)};requestAnimationFrame(f)}
+async function run(){$('err').textContent='';$('out').classList.add('hid');$('rd').classList.add('on');
+ let d;try{if(API){const r=await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:pos.lat,lon:pos.lon,loss_date:$('dt').value})});if(!r.ok)throw new Error((await r.json()).detail||'API error');d=await r.json()}else{await new Promise(r=>setTimeout(r,1800));d=sim()}}
+ catch(e){$('rd').classList.remove('on');$('err').textContent='⚠ '+e.message;return}
+ $('rd').classList.remove('on');show(d)}
+function show(d){const L_=T[$('lg').value],ac=+$('ar').value;
+ $('kp').innerHTML=`<div><b class="red" id="c1">0</b>${L_.loss}</div><div><b id="c2">0</b>${L_.el}</div><div><b>${d.baseline_ndvi}→${d.post_ndvi}</b>NDVI</div><div><b>${d.images_used}</b>satellite scenes</div>`;
+ $('out').classList.remove('hid');count($('c1'),d.loss_pct,'%');count($('c2'),ac*d.loss_pct/100,' ac');
+ $('gb').style.width='0';setTimeout(()=>$('gb').style.width=d.loss_pct+'%',100);$('sv').textContent=d.severity.toUpperCase();$('cf').textContent='confidence: '+d.confidence;
+ $('ct').textContent=L_.chart;$('rt').textContent=L_.rep;const ld=$('dt').value,i0=d.series.findIndex(p=>p.date>=ld);
+ if(chart)chart.destroy();chart=new Chart($('ch'),{type:'line',data:{labels:d.series.map(p=>p.date),datasets:[{data:d.series.map(p=>p.ndvi),tension:.35,borderWidth:3,pointRadius:4,fill:true,backgroundColor:'rgba(0,230,118,.12)',segment:{borderColor:c=>c.p0DataIndex>=i0-1?'#ff5252':'#00e676'}},{label:'Water index (NDWI)',data:d.series.map(p=>p.ndwi??null),borderColor:'#29b6f6',borderDash:[5,4],borderWidth:2,tension:.35,pointRadius:2}]},
+ options:{animation:{duration:2200,easing:'easeOutQuart'},plugins:{legend:{labels:{color:'#a5d6a7'}}},scales:{x:{ticks:{color:'#a5d6a7',maxTicksLimit:8}},y:{ticks:{color:'#a5d6a7'},title:{display:true,text:'NDVI',color:'#a5d6a7'}}}},
+ plugins:[{afterDraw(c){if(i0<0)return;const x=c.scales.x.getPixelForValue(i0),{ctx,chartArea:a}=c;ctx.save();ctx.strokeStyle='#ff5252';ctx.setLineDash([6,5]);ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();ctx.fillStyle='#ff5252';ctx.fillText($('ev').value,x+5,a.top+12);ctx.restore()}}]});
+ const v=[$('nm').value,$('vl').value,$('cr').value,ac+' acres',$('ev').value,ld,pos.lat.toFixed(5)+', '+pos.lon.toFixed(5),d.source];
+ $('tb').innerHTML=L_.rows.map((k,i)=>`<tr><td>${k}</td><td>${v[i]}</td></tr>`).join('');$('nt').textContent=L_.warn;
+ last=`FasalProof | ${v[0]}, ${v[1]} | ${v[2]} ${v[3]} | ${v[4]} on ${ld} | ${L_.loss}: ${d.loss_pct}% | GPS ${v[6]}`;
+ extras(d);hist(d);$('out').scrollIntoView({behavior:'smooth'})}
+$('mode').textContent=API?'Live mode: real Sentinel-2 data via FasalProof API.':'Demo mode: simulated NDVI. Set API in index.html to use real satellite data.';
+
+let wch,SC=0,rch;
+async function extras(d){const ld=$('dt').value,t0=new Date(ld),iso=x=>x.toISOString().slice(0,10),now=new Date(),ev=$('ev').value,
+ s=iso(new Date(t0-30*864e5)),e=iso(new Date(Math.min(t0.getTime()+3*864e5,now-5*864e5)));let days=[];
+ try{const r=await(await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${pos.lat}&longitude=${pos.lon}&start_date=${s}&end_date=${e}&daily=precipitation_sum,temperature_2m_max&timezone=auto`)).json();days=r.daily.time.map((t,i)=>({t,p:r.daily.precipitation_sum[i]||0,x:r.daily.temperature_2m_max[i]||0}))}catch(_){}
+ const near=days.filter(x=>Math.abs(new Date(x.t)-t0)<=3*864e5),r3=near.reduce((a,x)=>a+x.p,0),r30=days.reduce((a,x)=>a+x.p,0),hot=Math.max(0,...days.slice(-10).map(x=>x.x));
+ let ok=null,msg='Weather check not applicable for this calamity.';
+ if(days.length){if(ev==='Flood'){ok=r3>=60;msg=`Rainfall within ±3 days: ${r3.toFixed(0)} mm (${ok?'consistent with flooding':'lower than typical flood level'}).`}
+ else if(ev==='Hailstorm'){ok=near.some(x=>x.p>=20);msg=`Max daily rain near date: ${Math.max(0,...near.map(x=>x.p)).toFixed(0)} mm (${ok?'storm activity detected':'no strong storm signal'}).`}
+ else if(ev==='Drought'){ok=r30<40||hot>=40;msg=`30-day rainfall: ${r30.toFixed(0)} mm, peak temp ${hot.toFixed(0)}°C (${ok?'dry/hot conditions confirmed':'not clearly dry'}).`}}
+ const late=(now-t0)/864e5,a=Math.min(50,d.loss_pct*.8),b=ok===null?15:ok?30:8,c=late<=3?20:late<=14?12:5;SC=Math.round(a+b+c);
+ const col=SC>=70?'#00e676':SC>=45?'#ffeb3b':'#ff5252',tier=SC>=70?'STRONG':SC>=45?'MODERATE':'WEAK';
+ $('ring').innerHTML=`<svg width="120" height="120" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/><circle id="rc" cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 2s"/><text x="50" y="54" text-anchor="middle" fill="#fff" font-size="22" font-weight="800" id="sc">0</text><text x="50" y="68" text-anchor="middle" fill="${col}" font-size="8">${tier}</text></svg>`;
+ setTimeout(()=>$('rc').style.strokeDashoffset=251.3*(1-SC/100),100);count($('sc'),SC);setTimeout(()=>$('sc').textContent=SC,1600);
+ $('ins').innerHTML=`<li>🛰️ Satellite: ${d.loss_pct}% vegetation drop (${d.severity})</li><li>🌧️ ${msg}</li><li>⏱️ ${late<=3?'Reported within 72 h ✔':'Reported '+Math.round(late)+' days after loss. File intimation immediately.'}</li>`;
+ if(wch)wch.destroy();if(days.length)wch=new Chart($('wc'),{type:'bar',data:{labels:days.map(x=>x.t.slice(5)),datasets:[{label:'Rain (mm)',data:days.map(x=>x.p),backgroundColor:days.map(x=>Math.abs(new Date(x.t)-t0)<=864e5?'#ff5252':'#29b6f6')}]},options:{animation:{duration:1800},plugins:{legend:{labels:{color:'#a5d6a7'}}},scales:{x:{ticks:{color:'#a5d6a7',maxTicksLimit:10}},y:{ticks:{color:'#a5d6a7'}}}}});
+ $('th').innerHTML=d.before_img?`<figure><img src="${d.before_img}" alt="before"><figcaption>🟢 Before loss (Sentinel-2)</figcaption></figure><figure><img src="${d.after_img}" alt="after"><figcaption>🔴 After loss (Sentinel-2)</figcaption></figure>`:'';
+ last+=` | Claim strength ${SC}/100 (${tier})`;$('qr').innerHTML='';new QRCode($('qr'),{text:last.slice(0,200),width:96,height:96});
+ const comp=[a/50*100,b/30*100,c/20*100,Math.min(100,(d.water_pct||0)*2.5),d.confidence==='high'?100:d.confidence==='medium'?65:40];
+ if(window.rch)rch.destroy();rch=new Chart($('rr'),{type:'radar',data:{labels:['Satellite','Weather','Timeliness','Flood water','Data quality'],datasets:[{data:comp,backgroundColor:'rgba(0,230,118,.25)',borderColor:'#00e676',pointBackgroundColor:'#00e676'}]},options:{animation:{duration:2000},plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(255,255,255,.15)'},angleLines:{color:'rgba(255,255,255,.15)'},pointLabels:{color:'#a5d6a7'}}}}});
+ setTimeout(()=>$('wg').style.width=Math.min(100,(d.water_pct||0)*2)+'%',100);$('wt').textContent=(d.water_pct||0)+'% more of the plot is under water vs. before'+(ev==='Flood'?'':' (relevant mainly for floods)');
+ const txt=`${$('nm').value}'s ${$('cr').value} field (${$('ar').value} acres) shows ${d.loss_pct}% vegetation loss after the ${ev.toLowerCase()} on ${ld}, backed by ${d.images_used} satellite scenes. ${msg} Claim strength: ${tier} (${SC}/100). Next steps: (1) call 14447 or inform your bank now, (2) keep this report, (3) photograph the field with date and location on, (4) share your land record and sowing proof.`;
+ clearInterval(window.tw);let i=0;$('an').textContent='';window.tw=setInterval(()=>{$('an').textContent=txt.slice(0,i+=3);if(i>txt.length)clearInterval(window.tw)},18)}
+$('gl').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pin(p.coords.latitude,p.coords.longitude);map.setView([p.coords.latitude,p.coords.longitude],16)},()=>$('err').textContent='⚠ Location permission blocked');
+$('wa').onclick=()=>open('https://wa.me/?text='+encodeURIComponent(last));
+$('ls').onclick=()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(last.replace(/\|/g,'.'));u.lang={en:'en-IN',hi:'hi-IN',mr:'mr-IN'}[$('lg').value];speechSynthesis.speak(u)};
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+async function bulk(){const rows=$('bt').value.trim().split('\n').map(l=>l.split(',').map(s=>s.trim())).filter(r=>r.length>=4),out=[['name','lat','lon','date','loss_pct','severity','water_pct','status']];$('bp').style.width='0';$('bb').innerHTML='';
+ for(let i=0;i<rows.length;i++){const[n,la,lo,dt]=rows[i];let res;
+  try{if(API){const r=await fetch(API+'/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lat:+la,lon:+lo,loss_date:dt})}),j=await r.json();if(!r.ok)throw new Error(j.detail||'error');res=[j.loss_pct,j.severity,j.water_pct,'ok']}
+  else{await new Promise(r=>setTimeout(r,400));const hh=[...(n+dt)].reduce((a,c)=>(a*31+c.charCodeAt(0))|0,7)>>>0,l=20+hh%55;res=[l,l>=50?'severe':l>=25?'moderate':'low',hh%30,'demo']}}
+  catch(e){res=['','','',String(e.message).slice(0,50)]}
+  out.push([n,la,lo,dt,...res]);$('bb').innerHTML+=`<tr><td>${n}</td><td>${res[0]}${res[0]!==''?'%':''}</td><td>${res[1]}</td><td>${res[3]}</td></tr>`;$('bp').style.width=((i+1)/rows.length*100)+'%';if(API)await new Promise(r=>setTimeout(r,3500))}
+ window.bcsv=out.map(r=>r.join(',')).join('\n')}
+$('bg').onclick=bulk;$('bd').onclick=()=>{if(!window.bcsv)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([window.bcsv],{type:'text/csv'}));a.download='fasalproof_claims.csv';a.click()};
+
+function toast(m){const t=document.createElement('div');t.textContent=m;$('toast').appendChild(t);setTimeout(()=>t.remove(),2600)}
+function loadP(lat,lon,dt,ev,cr){pin(+lat,+lon);map.setView([+lat,+lon],15);$('dt').value=dt;$('ev').value=ev;$('cr').value=cr;run()}
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p.split(',');loadP(...p)});
+function renderH(){try{const a=JSON.parse(localStorage.getItem('fp_h')||'[]');if(!a.length)return;$('hs').innerHTML=a.map((x,i)=>`<button class="s" data-i="${i}">${x.n} · ${x.ev} · ${x.l}%</button>`).join('');$('hs').querySelectorAll('button').forEach(b=>b.onclick=()=>{const x=a[b.dataset.i];$('nm').value=x.n;$('vl').value=x.vl;loadP(x.lat,x.lon,x.dt,x.ev,x.cr)})}catch(_){}}
+function hist(d){try{const a=JSON.parse(localStorage.getItem('fp_h')||'[]');a.unshift({n:$('nm').value,vl:$('vl').value,cr:$('cr').value,ev:$('ev').value,dt:$('dt').value,lat:pos.lat,lon:pos.lon,l:d.loss_pct});localStorage.setItem('fp_h',JSON.stringify(a.slice(0,6)));renderH()}catch(_){}}renderH();
+$('ex').onclick=()=>{toast('Rendering image…');html2canvas($('out'),{backgroundColor:document.body.classList.contains('lt')?'#eef5f1':'#05080d',scale:2}).then(c=>{const a=document.createElement('a');a.href=c.toDataURL();a.download='fasalproof_report.png';a.click();toast('Image saved ✓')})};
+$('th2').onclick=()=>document.body.classList.toggle('lt');
+let fzi=0;$('fz').onclick=()=>{fzi=(fzi+1)%3;document.body.style.zoom=[1,1.12,1.25][fzi]};
+addEventListener('keydown',e=>{const t=e.target.tagName;if(e.key==='Enter'&&(t==='INPUT'||t==='SELECT'))run();if((e.key==='t'||e.key==='T')&&t!=='INPUT'&&t!=='TEXTAREA'&&t!=='SELECT')$('th2').click()});
+addEventListener('scroll',()=>{$('pg').style.width=(scrollY/(document.documentElement.scrollHeight-innerHeight)*100)+'%'});
+addEventListener('mousemove',e=>{$('cg').style.left=e.clientX+'px';$('cg').style.top=e.clientY+'px'});
+document.querySelectorAll('.card').forEach(c=>{if(c.id==='sec1')return;c.addEventListener('mousemove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(1000px) rotateY(${x*2.5}deg) rotateX(${-y*2.5}deg)`});c.addEventListener('mouseleave',()=>c.style.transform='')});
+document.querySelectorAll('[data-n]').forEach(el=>{const to=+el.dataset.n,s=el.dataset.s;let t0=null;const f=t=>{t0=t0||t;const p=Math.min(1,(t-t0)/1600);el.textContent=Math.round(to*p)+s;p<1&&requestAnimationFrame(f)};requestAnimationFrame(f)});
+(async()=>{try{if(!API)throw 0;const r=await fetch(API+'/health');if(!r.ok)throw 0;$('st').className='on';$('st').textContent='● API live'}catch(_){$('st').textContent=API?'● API waking…':'● Demo mode'}})();
+$('go').onclick=run;$('pr').onclick=()=>print();$('sh').onclick=()=>{navigator.clipboard.writeText(last).then(()=>$('sh').textContent='Copied ✓')};
+</script></body></html>
