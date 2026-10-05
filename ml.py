@@ -55,3 +55,13 @@ def zones_from_grids(nd0, nd1):
     pct = [round(float((g == k).sum() / t * 100), 1) for k in (0, 1, 2)]
     return {"grid": g.tolist(), "pct": {"severe": pct[0], "moderate": pct[1], "stable": pct[2]},
             "centers": [round(float(x), 3) for x in c], "pixels": int(t)}
+
+def to_db(x): return 10 * np.log10(np.clip(x, 1e-6, None))
+
+def flood_stats(pre_lin, post_lin, water_db=-15.0, drop_db=3.0):
+    """Sentinel-1 VV change detection: open water is dark (< -15 dB); a new flood is dark AND >3 dB darker than before."""
+    ok = np.isfinite(pre_lin) & np.isfinite(post_lin) & (pre_lin > 0) & (post_lin > 0)
+    if ok.sum() < 30: return None
+    pre, post = to_db(pre_lin[ok]), to_db(post_lin[ok]); fl = (post < water_db) & ((post - pre) < -drop_db)
+    return {"pixels": int(ok.sum()), "water_post_pct": round(float((post < water_db).mean() * 100), 1),
+            "new_flood_pct": round(float(fl.mean() * 100), 1), "mean_change_db": round(float((post - pre).mean()), 2)}

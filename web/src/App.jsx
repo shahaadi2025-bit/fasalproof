@@ -4,31 +4,46 @@ import Results from './Results';
 import Boundary from './Boundary';
 import {analyze, health, weather} from './api';
 import {CROPS, CAL, meta} from './crops';
+import {qPut, qAll, qClear} from './offline';
+import {verifyBundle} from './verify';
+import {record, transcribe} from './ai';
+import {WLANG} from './aiLogic';
+import {dec, loadHist, saveHist} from './kit';
+const INIT = (() => { try { const m = location.hash.match(/#s=(.+)/); return m ? dec(m[1]) : null; } catch { return null; } })();
 const EX = [['Maharashtra', 18.99, 75.76, '2025-11-20', 'Flood', 'Soybean'], ['Punjab', 30.90, 75.85, '2025-04-12', 'Hailstorm', 'Wheat'], ['Rajasthan', 26.91, 75.79, '2025-12-15', 'Drought / dry spell', 'Cotton']];
+const transient = e => e instanceof TypeError || /unavailable|non-JSON|waking|HTTP 5/i.test(e.message);
+async function withRetry(fn, n = 2) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= n || e.name === 'AbortError' || !transient(e)) throw e; await new Promise(r => setTimeout(r, 4000 * (i + 1))); } } }
 export default function App() {
-  const [f, setF] = useState({nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', hv: '', si: '40000', hs: 100, db: 90, da: 45, ctrl: false});
-  const [pos, setPos] = useState({lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0), [q, setQ] = useState(''), [hits, setHits] = useState([]);
+  const [f, setF] = useState({...{nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', hv: '', si: '40000', hs: 100, db: 90, da: 45, ctrl: false}, ...(INIT?.f || {})});
+  const [pos, setPos] = useState(INIT?.pos || {lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0), [q, setQ] = useState(''), [hits, setHits] = useState([]);
   const [st, setSt] = useState('idle'), [err, setErr] = useState(''), [d, setD] = useState(null), [cd, setCd] = useState(null), [wx, setWx] = useState(null), [sec, setSec] = useState(0), [api, setApi] = useState('…');
+  const [exp, setExp] = useState(() => localStorage.getItem('fp_exp') === '1'), [last, setLast] = useState(() => { try { return JSON.parse(localStorage.getItem('fp_last')); } catch { return null; } }), [hist, setHist] = useState(loadHist()), [mi, setMi] = useState(''), [vr, setVr] = useState(null), [auto, setAuto] = useState(0), [oq, setOq] = useState(0);
+  const onVerify = async e => { const file = e.target.files[0]; if (!file) return; try { setVr(await verifyBundle(JSON.parse(await file.text()))); } catch (x) { setVr({ok: false, why: 'Could not verify: ' + x.message}); } };
+  useEffect(() => { qAll().then(a => setOq(a.length)).catch(() => {}); const on = async () => { try { const a = await qAll(); if (!a.length) return; const j = a[a.length - 1]; await qClear(); setOq(0); setF(j.f); setPos(j.pos); setFly(x => x + 1); setTimeout(() => setAuto(x => x + 1), 80); } catch (x) {} }; addEventListener('online', on); if (navigator.onLine) on(); return () => removeEventListener('online', on); }, []);
+  useEffect(() => { if (auto) run(); }, [auto]);
   const set = k => e => setF({...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value});
   useEffect(() => { health().then(v => setApi(v ? '● API live v' + v : '● API error')).catch(() => setApi('● API waking…')); }, []);
   useEffect(() => { if (st !== 'loading') return; const t0 = Date.now(), i = setInterval(() => setSec(Math.round((Date.now() - t0) / 1000)), 1000); return () => clearInterval(i); }, [st]);
   const go = p => { setPos({lat: p[1], lon: p[2]}); setF({...f, dt: p[3], ev: p[4], cr: p[5]}); setFly(x => x + 1); };
-  async function search() {
-    if (q.trim().length < 2) return; setErr('');
+  async function search(text) {
+    const name = (typeof text === 'string' ? text : q).trim();
+    if (name.length < 2) return; setErr('');
     try {
-      const r = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q.trim())}&count=6&language=en&format=json&countryCode=IN`)).json();
+      const r = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=6&language=en&format=json&countryCode=IN`)).json();
       setHits(r.results || []); if (!(r.results || []).length) setErr('No place found. Try a nearby town or enter coordinates.');
     } catch (e) { setErr('Location search failed. You can tap the map instead.'); }
   }
+  const mic = async () => { try { setMi('Listening 5s…'); const au = await record(5); setMi('Loading AI…'); const t = await transcribe(au, WLANG[f.lg] || 'english', p => setMi('Model ' + p + '%')); setMi(''); if (t) { setQ(t); await search(t); } } catch (e) { setMi(''); setErr('Voice input failed: ' + e.message); } };
   const pick = h => { setPos({lat: h.latitude, lon: h.longitude}); setF({...f, vl: [h.name, h.admin2, h.admin1].filter(Boolean).join(', ')}); setFly(x => x + 1); setHits([]); setQ(''); };
   async function run() {
+    if (!navigator.onLine) { await qPut({id: Date.now(), f, pos}); setOq(1); setErr('You are offline. The request is saved and will run automatically when you are back online.'); setSt('error'); return; }
     setSt('loading'); setErr(''); setSec(0); setCd(null);
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), 240000);
     try {
       const body = {lat: pos.lat, lon: pos.lon, loss_date: f.dt, days_before: +f.db, days_after: +f.da, half_size_m: +f.hs};
-      const j = await analyze(body, ac.signal); let c = null;
+      const j = await withRetry(() => analyze(body, ac.signal)); let c = null;
       if (f.ctrl) { try { c = await analyze({...body, lat: pos.lat + 0.012}, ac.signal); } catch (e) { c = {error: e.message}; } }
-      const w = await weather(pos.lat, pos.lon, f.dt, f.ev); setWx(w); setCd(c); setD(j); setSt('done');
+      const w = await weather(pos.lat, pos.lon, f.dt, f.ev); setWx(w); setCd(c); setD(j); setSt('done'); saveHist({f, pos, loss: j.loss_pct, at: Date.now()}); setHist(loadHist()); try { localStorage.setItem('fp_last', JSON.stringify({f, pos, d: j, wx: w, cd: c, at: Date.now()})); setLast(JSON.parse(localStorage.getItem('fp_last'))); } catch {}
     } catch (e) { setErr(e.name === 'AbortError' ? 'Timed out. The free server may be waking or busy. Wait a minute and try again.' : e.message); setSt('error'); }
     finally { clearTimeout(to); }
   }
@@ -38,7 +53,7 @@ export default function App() {
     <aside className="pn" id="side">
       <div className="br">FASAL<i>PROOF</i></div><div className="tg">SATELLITE CLAIM INTELLIGENCE</div>
       <label>🔎 SEARCH LOCATION (VILLAGE / TOWN, INDIA)</label>
-      <div style={{display: 'flex', gap: 6}}><input value={q} placeholder="e.g. Beed, Ludhiana" onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()}/><button className="gh" style={{margin: 0}} onClick={search}>Go</button></div>
+      <div style={{display: 'flex', gap: 6}}><input value={q} placeholder="e.g. Beed, Ludhiana" onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()}/><button className="gh" style={{margin: 0}} onClick={search}>Go</button>{exp && <button className="gh" style={{margin: 0}} title="Speak the place name (on-device Whisper)" disabled={!!mi} onClick={mic}>{mi || '🎤'}</button>}</div>
       {hits.map(h => <button key={h.id} className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => pick(h)}>{h.name}, {[h.admin2, h.admin1].filter(Boolean).join(', ')}</button>)}
       <div className="r2">
         <div><label>LATITUDE</label><input type="number" step="0.00001" value={+pos.lat.toFixed(5)} onChange={e => setPos({...pos, lat: +e.target.value})} onBlur={() => setFly(x => x + 1)}/></div>
@@ -64,17 +79,24 @@ export default function App() {
           <div><label>REPORT LANGUAGE</label><select value={f.lg} onChange={set('lg')}><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></div>
         </div>
         <label style={{display: 'flex', gap: 8, alignItems: 'center', letterSpacing: 0}}><input type="checkbox" style={{width: 16}} checked={f.ctrl} onChange={set('ctrl')}/>Compare with a nearby control field (slower)</label>
+        <label style={{display: 'flex', gap: 8, alignItems: 'center', letterSpacing: 0, marginTop: 6}}><input type="checkbox" style={{width: 16}} checked={exp} onChange={e => { setExp(e.target.checked); localStorage.setItem('fp_exp', e.target.checked ? '1' : '0'); }}/>Show experimental features ⚗ (radar, on-device AI, voice)</label>
       </details>
+      {oq > 0 && <p className="nt" style={{borderColor: '#f59e0b'}}>⏳ {oq} analysis waiting for a connection.</p>}
+      <details><summary>🔍 Verify a signed report</summary><input type="file" accept=".json" onChange={onVerify}/>{vr && <p className="nt" style={{marginTop: 8, borderColor: vr.ok ? '#22c55e' : '#ef4444'}}>{vr.ok ? '✔ ' : '✖ '}{vr.why}</p>}</details>
       <button id="go" disabled={st === 'loading'} onClick={run}>{st === 'loading' ? 'Analysing…' : 'Run satellite analysis'}</button>
       {err && <div id="er">⚠ {err}</div>}
+      {st === 'error' && /clear view|Not enough/i.test(err) && <button className="gh" onClick={() => { setF({...f, db: 120, da: 90, hs: 200}); setTimeout(() => setAuto(x => x + 1), 60); }}>↻ Retry with a wider window</button>}
       {st === 'done' && d && <div className="m" style={{marginTop: 10}}><div><small>LOSS</small><b>{d.loss_pct}%</b><span>{d.severity}</span></div><div><small>SCENES</small><b>{d.images_used}</b><span>{d.confidence} confidence</span></div></div>}
       {api.includes('v') && parseFloat(api.split('v')[1]) < 4 && <p className="nt" style={{color: '#f59e0b'}}>⚠ Old backend detected ({api}). Redeploy on Render: Manual Deploy → Clear build cache &amp; deploy.</p>}
+      {hist.length > 0 && <details><summary>🕘 Recent analyses</summary>{hist.map(h => <button key={h.at} className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => { setF(h.f); setPos(h.pos); setFly(x => x + 1); }}>{h.f.nm} · {h.f.cr} · {h.f.ev} · {h.loss}% · {new Date(h.at).toLocaleDateString('en-IN')}</button>)}</details>}
+      {last && st !== 'loading' && <button className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => { setF(last.f); setPos(last.pos); setD(last.d); setWx(last.wx); setCd(last.cd); setSt('done'); setFly(x => x + 1); }}>📂 Load last saved result ({new Date(last.at).toLocaleString('en-IN')})</button>}
       <label style={{marginTop: 14}}>EXAMPLE LOCATIONS</label>
       {EX.map(p => <button key={p[0]} className="gh" onClick={() => go(p)}>{p[0]}</button>)}
       <button className="gh" onClick={() => navigator.geolocation.getCurrentPosition(p => { setPos({lat: p.coords.latitude, lon: p.coords.longitude}); setFly(x => x + 1); }, () => setErr('Location permission blocked'))}>📍 My location</button>
+      <details><summary>ℹ About, data credits &amp; limits</summary><p className="nt" style={{marginTop: 8}}>Data: Sentinel-2 (ESA / Copernicus, free and open) via Earth Search; Esri World Imagery basemap; Open-Meteo weather (CC BY 4.0); FAO-56 crop tables; PMFBY operational guidelines. Built and tested by the FasalProof team. Results are supporting evidence, not an official crop-loss assessment, and have not yet been validated against a large set of field records.</p></details>
       <p className="nt" style={{marginTop: 14}}>Theil–Sen forecast · bootstrap CI · change-point tests · k-means zones · Bayesian fusion · Monte Carlo. <span id="st">{api}</span></p>
       {d && <details><summary>Raw API response (debug)</summary><pre>{JSON.stringify({...d, zones: d.zones ? '[grid hidden]' : null, forecast: '[hidden]'}, null, 1).slice(0, 1800)}</pre></details>}
     </aside>
-    {d && <Boundary key={d.images_used + f.dt}><Results d={d} wx={wx} f={f} pos={pos} cd={cd}/></Boundary>}
+    {d && <Boundary key={d.images_used + f.dt}><Results d={d} wx={wx} f={f} pos={pos} cd={cd} exp={exp}/></Boundary>}
   </>);
 }

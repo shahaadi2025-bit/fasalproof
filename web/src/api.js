@@ -1,3 +1,4 @@
+import {climRain} from './clim';
 export const API = import.meta.env.VITE_API || 'https://fasalproof.onrender.com';
 export async function analyze(body, signal) {
   const r = await fetch(API + '/analyze', {method: 'POST', signal, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
@@ -22,5 +23,18 @@ export async function weather(lat, lon, ld, ev) {
     else if (ev === 'Hailstorm') { const mx = Math.max(0, ...near.map(x => x.p)); ok = mx >= 20; msg = `Peak daily rain near the date: ${mx.toFixed(0)} mm. ${ok ? 'Storm activity detected.' : 'No strong storm signal.'}`; }
     else if (ev === 'Drought / dry spell') { ok = r30 < 40 || hot >= 40; msg = `30-day rainfall ${r30.toFixed(0)} mm, peak temperature ${hot.toFixed(0)}°C. ${ok ? 'Dry/hot conditions confirmed.' : 'Not clearly dry.'}`; }
   }
-  return {days, msg, pts: ok === null ? 15 : ok ? 30 : 8};
+  let clim = null;
+  try {
+    const end = iso(new Date(Math.min(t0.getTime() + 3 * 864e5, now - 5 * 864e5)));
+    if (new Date(end) >= new Date(iso(new Date(t0.getTime() + 3 * 864e5)))) {
+      const r2 = await (await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${t0.getFullYear() - 10}-01-01&end_date=${end}&daily=precipitation_sum&timezone=auto`)).json();
+      clim = climRain(r2.daily.time.map((t, i) => ({d: t, p: r2.daily.precipitation_sum[i] || 0})), ld);
+    }
+  } catch (e) {}
+  return {days, msg, pts: ok === null ? 15 : ok ? 30 : 8, clim};
+}
+
+export async function sar(body) {
+  const r = await fetch(API + '/sar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(typeof j.detail === 'string' ? j.detail : 'Radar check failed (HTTP ' + r.status + ')'); return j;
 }

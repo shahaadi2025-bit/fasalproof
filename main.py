@@ -8,7 +8,8 @@ import numpy as np, rasterio, requests
 from rasterio.warp import transform_bounds
 from rasterio.windows import from_bounds
 from rasterio.enums import Resampling
-from ml import ml_stats, zones_from_grids
+from ml import ml_stats, zones_from_grids, flood_stats
+from sign import sign as sign_hash, verify as verify_sig, PUB_B64, KEY_ID, EPHEMERAL
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
@@ -16,7 +17,7 @@ from pydantic import BaseModel, Field, field_validator
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("fasalproof")
 STAC = "https://earth-search.aws.element84.com/v1/search"
-app = FastAPI(title="FasalProof API", version="4.1")
+app = FastAPI(title="FasalProof API", version="4.2")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class Query(BaseModel):
@@ -107,7 +108,7 @@ def stac_search(body):
 
 @app.get("/")
 @app.get("/health")
-def health(): return {"status": "ok", "app": "FasalProof", "version": "4.1"}
+def health(): return {"status": "ok", "app": "FasalProof", "version": "4.2"}
 
 @app.post("/analyze")
 def analyze(q: Query, request: Request):
@@ -147,3 +148,58 @@ def analyze(q: Query, request: Request):
         "source": "Sentinel-2 L2A via Earth Search (ESA/AWS open data), SCL cloud-masked"}
     _cache[key] = (time.time(), out)
     return out
+
+
+# ---------- Report signing (Ed25519) ----------
+class SignReq(BaseModel):
+    hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+class VerifyReq(SignReq):
+    signed_at: int
+    sig: str
+
+@app.post("/sign")
+def sign_ep(r: SignReq, request: Request):
+    rate_limit(request.client.host if request.client else "anon")
+    ts = int(time.time())
+    return {"hash": r.hash, "signed_at": ts, "sig": sign_hash(r.hash, ts), "key_id": KEY_ID, "ephemeral": EPHEMERAL}
+
+@app.post("/verify")
+def verify_ep(r: VerifyReq, request: Request):
+    rate_limit(request.client.host if request.client else "anon")
+    return {"valid": verify_sig(r.hash, r.signed_at, r.sig), "key_id": KEY_ID}
+
+@app.get("/pubkey")
+def pubkey(): return {"alg": "Ed25519", "public_key_b64": PUB_B64, "key_id": KEY_ID, "ephemeral": EPHEMERAL}
+
+# ---------- Sentinel-1 radar flood check (Planetary Computer RTC, free). Cloud-independent. ----------
+PC_STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
+PC_SIGN = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
+
+def _sar_read(item, bb, n=24):
+    href = requests.get(PC_SIGN, params={"href": item["assets"]["vv"]["href"]}, timeout=20).json()["href"]
+    with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", GDAL_HTTP_TIMEOUT="25"):
+        with rasterio.open(href) as s:
+            w = from_bounds(*transform_bounds("EPSG:4326", s.crs, *bb), transform=s.transform)
+            a = s.read(1, window=w, out_shape=(n, n), resampling=Resampling.bilinear).astype("float32")
+    a[a <= 0] = np.nan
+    return a
+
+@app.post("/sar")
+def sar(q: Query, request: Request):
+    rate_limit(request.client.host if request.client else "anon")
+    bb = bbox_of(q.lat, q.lon, q.half_size_m)
+    r = requests.post(PC_STAC, json={"collections": ["sentinel-1-rtc"], "bbox": bb, "limit": 60,
+        "datetime": f"{q.loss_date - timedelta(days=45)}T00:00:00Z/{q.loss_date + timedelta(days=30)}T23:59:59Z"}, timeout=30)
+    if r.status_code != 200: raise HTTPException(502, "Radar catalog unavailable. Please retry.")
+    orbits = {}
+    for f in r.json().get("features", []):
+        d = f["properties"]["datetime"][:10]
+        k = f["properties"].get("sat:relative_orbit")
+        side = "pre" if date.fromisoformat(d) < q.loss_date else "post"
+        orbits.setdefault(k, {"pre": [], "post": []})[side].append((d, f))
+    pair = next(((o, sorted(v["pre"], key=lambda x: x[0])[-1], sorted(v["post"], key=lambda x: x[0])[0]) for o, v in orbits.items() if v["pre"] and v["post"]), None)
+    if not pair: raise HTTPException(404, "No Sentinel-1 before/after pair on the same orbit for this plot and date.")
+    o, pre, post = pair
+    st = flood_stats(_sar_read(pre[1], bb), _sar_read(post[1], bb))
+    if not st: raise HTTPException(404, "Too few valid radar pixels over the plot.")
+    return {**st, "pre_date": pre[0], "post_date": post[0], "orbit": o, "source": "Sentinel-1 RTC (Microsoft Planetary Computer, free)"}

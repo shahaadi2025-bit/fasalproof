@@ -43,3 +43,34 @@ export function fuse({conf, wok, off, base, late, loss, post, bad}) {
   if (bad) add('Date logic', .2, 'loss date is before sowing');
   return {p: o / (1 + o), f};
 }
+
+// ---- HANTS-style harmonic smoothing: least-squares harmonics; low outliers (cloud) rejected ONLY before the loss date.
+function solve(A, b) {
+  const n = b.length, M = A.map((r, i) => [...r, b[i]]);
+  for (let i = 0; i < n; i++) { let p = i; for (let r = i + 1; r < n; r++) if (Math.abs(M[r][i]) > Math.abs(M[p][i])) p = r; [M[i], M[p]] = [M[p], M[i]];
+    for (let r = i + 1; r < n; r++) { const f = M[r][i] / M[i][i]; for (let c = i; c <= n; c++) M[r][c] -= f * M[i][c]; } }
+  const x = Array(n).fill(0); for (let i = n - 1; i >= 0; i--) { let s = M[i][n]; for (let c = i + 1; c < n; c++) s -= M[i][c] * x[c]; x[i] = s / M[i][i]; } return x;
+}
+export function hants(ts, ys, nf = 2, canReject = [], drop = .1, iters = 4, period = null) {
+  const T = period || (Math.max(...ts) - Math.min(...ts) + 1), B = t => { const r = [1]; for (let k = 1; k <= nf; k++) r.push(Math.cos(2 * Math.PI * k * t / T), Math.sin(2 * Math.PI * k * t / T)); return r; };
+  let keep = ys.map(() => true), fit = null;
+  for (let it = 0; it < iters; it++) {
+    const idx = ys.map((_, i) => i).filter(i => keep[i]); if (idx.length <= 2 * nf + 1) break;
+    const X = idx.map(i => B(ts[i])), p = X[0].length;
+    const A = Array.from({length: p}, (_, i) => Array.from({length: p}, (_, j) => X.reduce((s, r) => s + r[i] * r[j], 0) + (i === j ? 1e-6 : 0)));
+    const c = solve(A, Array.from({length: p}, (_, i) => X.reduce((s, r, n) => s + r[i] * ys[idx[n]], 0)));
+    fit = ts.map(t => B(t).reduce((s, v, i) => s + v * c[i], 0));
+    keep = ys.map((y, i) => !(canReject[i] && y - fit[i] < -drop));
+  }
+  return fit;
+}
+// ---- Split-conformal check: leave-one-out Theil-Sen residuals on pre-loss scenes give a distribution-free band.
+const med = a => { const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+function tsen(x, y) { const s = []; for (let i = 0; i < x.length; i++) for (let j = i + 1; j < x.length; j++) if (x[j] !== x[i]) s.push((y[j] - y[i]) / (x[j] - x[i])); const m = s.length ? med(s) : 0; return [m, med(y.map((v, i) => v - m * x[i]))]; }
+export function conformal(series, ld, alpha = .1) {
+  const day = d => (new Date(d) - new Date(ld)) / 864e5, pre = series.filter(p => p.date < ld).map(p => [day(p.date), p.ndvi]), post = series.filter(p => p.date >= ld).map(p => [day(p.date), p.ndvi]);
+  if (pre.length < 5 || !post.length) return null;
+  const res = pre.map((p, i) => { const o = pre.filter((_, j) => j !== i), [m, c] = tsen(o.map(x => x[0]), o.map(x => x[1])); return Math.abs(p[1] - (m * p[0] + c)); }).sort((a, b) => a - b);
+  const q = res[Math.min(res.length, Math.ceil((res.length + 1) * (1 - alpha))) - 1], [m, c] = tsen(pre.map(x => x[0]), pre.map(x => x[1])), cap = Math.max(...pre.map(x => x[1])) * 1.05;
+  return {q, alpha, nCal: pre.length, n: post.length, out: post.filter(p => p[1] < Math.min(cap, Math.max(.05, m * p[0] + c)) - q).length};
+}
