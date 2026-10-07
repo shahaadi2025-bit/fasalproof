@@ -22,8 +22,9 @@ export default function MapView({pos, setPos, zones, fly, size = 100}) {
   useEffect(() => { box.current?.setBounds(bbx(pos.lat, pos.lon, size)); if (ov.current) { m.current.removeLayer(ov.current); ov.current = null; } }, [pos, size]);
   useEffect(() => { if (fly) m.current?.setView([pos.lat, pos.lon], 16); }, [fly]);
   useEffect(() => {
-    if (!zones || !m.current) return;
-    if (ov.current) m.current.removeLayer(ov.current);
+    if (!m.current) return;
+    if (ov.current) { m.current.removeLayer(ov.current); ov.current = null; }
+    if (!zones) return;
     ov.current = L.imageOverlay(heatUrl(zones.grid), bbx(pos.lat, pos.lon, size), {opacity: .62, className: 'pix'}).addTo(m.current);
   }, [zones]);
   return <div id="map" ref={el}/>;

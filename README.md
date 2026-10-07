@@ -62,3 +62,8 @@ _Not measured yet._ Fill `validation/events.csv` with documented events, run `.\
 
 ## Reliability and honesty features
 `scripts/verify-live.ps1` (live end-to-end check), automatic retries for the sleeping free server, "retry with a wider window" on cloud cover, last-result recall for demos, experimental features hidden by default, low-data warnings, and an in-app About panel with data credits and limits.
+
+## Assistant and usability (v4.4)
+- Guided assistant (English / Hindi / Marathi) fills location, crop, calamity and date from plain sentences, so users need not use the map. It is a rule-based parser, not an LLM, so it is instant and predictable.
+- Results panel has a close button (also Esc) and a "Reopen results" button.
+- `scripts/status.ps1` shows what is done and what is left.

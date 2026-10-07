@@ -14,7 +14,7 @@ const T = {
   mr: {t: 'पीक नुकसान पुरावा अहवाल', r: ['शेतकरी', 'ठिकाण', 'पीक', 'क्षेत्र', 'आपत्ती', 'नुकसानाची तारीख', 'GPS', 'पीक नुकसान (95% CI)', 'दाव्याची ताकद', 'स्रोत'], w: 'PMFBY: स्थानिक आपत्तीची माहिती 72 तासांत 14447, बँक किंवा पीक विमा ॲपवर द्या. हा अहवाल पूरक पुरावा आहे, अधिकृत मूल्यांकन नाही.'}
 };
 const tip = {contentStyle: {background: '#0b1222', border: '1px solid #334155', fontSize: 12}};
-export default function Results({d, wx, f, pos, cd, exp}) {
+export default function Results({d, wx, f, pos, cd, exp, onClose}) {
   const [sg, setSg] = useState(null), [sgErr, setSgErr] = useState(''), [t, setT] = useState('ov'), old = !d.stats, z = d.zones || null, L = T[f.lg] || T.en;
   const s = d.stats || {ci: [d.loss_pct, d.loss_pct], z: 'n/a', confidence: 0.5, exp_post: 'n/a', break_date: null, offset: null};
   const fc = d.forecast || [];
@@ -37,7 +37,7 @@ export default function Results({d, wx, f, pos, cd, exp}) {
   const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN'}[f.lg]; speechSynthesis.speak(u); };
   return (
     <section className="pn on" id="hud">
-      <div className="tb">{tabs.filter(([k]) => exp || !['ad', 'ai'].includes(k)).map(([k, n]) => <button key={k} className={t === k ? 'a' : ''} onClick={() => setT(k)}>{n}{['ad', 'ai'].includes(k) ? ' ⚗' : ''}</button>)}</div>
+      <div className="tb">{tabs.filter(([k]) => exp || !['ad', 'ai'].includes(k)).map(([k, n]) => <button key={k} className={t === k ? 'a' : ''} onClick={() => setT(k)}>{n}{['ad', 'ai'].includes(k) ? ' ⚗' : ''}</button>)}<button className="x" onClick={onClose} aria-label="Close results" title="Close (Esc)">✕</button></div>
       <div className={'pg' + (t === 'ov' ? ' a' : '')}>
         {old && <p className="nt" style={{color: '#f59e0b', marginBottom: 12}}>⚠ Your server is running an OLD backend version, so ML statistics are missing. On render.com open your service, click Manual Deploy, then "Clear build cache &amp; deploy".</p>}
         {(d.images_used < 5 || d.confidence === 'low') && <p className="nt" style={{color: '#f59e0b', marginBottom: 12}}>⚠ Low data: only {d.images_used} clear satellite scene(s). Treat these numbers as indicative.</p>}

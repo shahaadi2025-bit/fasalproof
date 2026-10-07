@@ -6,6 +6,7 @@ import {analyze, health, weather} from './api';
 import {CROPS, CAL, meta} from './crops';
 import {qPut, qAll, qClear} from './offline';
 import {verifyBundle} from './verify';
+import Chat from './Chat';
 import {record, transcribe} from './ai';
 import {WLANG} from './aiLogic';
 import {dec, loadHist, saveHist} from './kit';
@@ -17,10 +18,12 @@ export default function App() {
   const [f, setF] = useState({...{nm: 'Ramesh Patil', vl: 'Beed, Maharashtra', cr: 'Soybean', ar: 3, ev: 'Flood', dt: '2025-11-20', lg: 'en', sow: '', hv: '', si: '40000', hs: 100, db: 90, da: 45, ctrl: false}, ...(INIT?.f || {})});
   const [pos, setPos] = useState(INIT?.pos || {lat: 18.99, lon: 75.76}), [fly, setFly] = useState(0), [q, setQ] = useState(''), [hits, setHits] = useState([]);
   const [st, setSt] = useState('idle'), [err, setErr] = useState(''), [d, setD] = useState(null), [cd, setCd] = useState(null), [wx, setWx] = useState(null), [sec, setSec] = useState(0), [api, setApi] = useState('…');
-  const [exp, setExp] = useState(() => localStorage.getItem('fp_exp') === '1'), [last, setLast] = useState(() => { try { return JSON.parse(localStorage.getItem('fp_last')); } catch { return null; } }), [hist, setHist] = useState(loadHist()), [mi, setMi] = useState(''), [vr, setVr] = useState(null), [auto, setAuto] = useState(0), [oq, setOq] = useState(0);
+  const [open, setOpen] = useState(true), [chat, setChat] = useState(false), [exp, setExp] = useState(() => localStorage.getItem('fp_exp') === '1'), [last, setLast] = useState(() => { try { return JSON.parse(localStorage.getItem('fp_last')); } catch { return null; } }), [hist, setHist] = useState(loadHist()), [mi, setMi] = useState(''), [vr, setVr] = useState(null), [auto, setAuto] = useState(0), [oq, setOq] = useState(0);
   const onVerify = async e => { const file = e.target.files[0]; if (!file) return; try { setVr(await verifyBundle(JSON.parse(await file.text()))); } catch (x) { setVr({ok: false, why: 'Could not verify: ' + x.message}); } };
   useEffect(() => { qAll().then(a => setOq(a.length)).catch(() => {}); const on = async () => { try { const a = await qAll(); if (!a.length) return; const j = a[a.length - 1]; await qClear(); setOq(0); setF(j.f); setPos(j.pos); setFly(x => x + 1); setTimeout(() => setAuto(x => x + 1), 80); } catch (x) {} }; addEventListener('online', on); if (navigator.onLine) on(); return () => removeEventListener('online', on); }, []);
   useEffect(() => { if (auto) run(); }, [auto]);
+  useEffect(() => { const k = e => { if (e.key === 'Escape') { setOpen(false); setChat(false); } }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
+  const applyChat = G => { setPos({lat: G.lat, lon: G.lon}); setF(p => ({...p, cr: G.cr, ev: G.ev, dt: G.dt, vl: G.vl || p.vl, ...(G.ar ? {ar: G.ar} : {})})); setFly(x => x + 1); setChat(false); setOpen(true); setTimeout(() => setAuto(x => x + 1), 120); };
   const set = k => e => setF({...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value});
   useEffect(() => { health().then(v => setApi(v ? '● API live v' + v : '● API error')).catch(() => setApi('● API waking…')); }, []);
   useEffect(() => { if (st !== 'loading') return; const t0 = Date.now(), i = setInterval(() => setSec(Math.round((Date.now() - t0) / 1000)), 1000); return () => clearInterval(i); }, [st]);
@@ -43,12 +46,12 @@ export default function App() {
       const body = {lat: pos.lat, lon: pos.lon, loss_date: f.dt, days_before: +f.db, days_after: +f.da, half_size_m: +f.hs};
       const j = await withRetry(() => analyze(body, ac.signal)); let c = null;
       if (f.ctrl) { try { c = await analyze({...body, lat: pos.lat + 0.012}, ac.signal); } catch (e) { c = {error: e.message}; } }
-      const w = await weather(pos.lat, pos.lon, f.dt, f.ev); setWx(w); setCd(c); setD(j); setSt('done'); saveHist({f, pos, loss: j.loss_pct, at: Date.now()}); setHist(loadHist()); try { localStorage.setItem('fp_last', JSON.stringify({f, pos, d: j, wx: w, cd: c, at: Date.now()})); setLast(JSON.parse(localStorage.getItem('fp_last'))); } catch {}
+      const w = await weather(pos.lat, pos.lon, f.dt, f.ev); setWx(w); setCd(c); setD(j); setSt('done'); setOpen(true); saveHist({f, pos, loss: j.loss_pct, at: Date.now()}); setHist(loadHist()); try { localStorage.setItem('fp_last', JSON.stringify({f, pos, d: j, wx: w, cd: c, at: Date.now()})); setLast(JSON.parse(localStorage.getItem('fp_last'))); } catch {}
     } catch (e) { setErr(e.name === 'AbortError' ? 'Timed out. The free server may be waking or busy. Wait a minute and try again.' : e.message); setSt('error'); }
     finally { clearTimeout(to); }
   }
   return (<>
-    <MapView pos={pos} setPos={setPos} zones={d?.zones} fly={fly} size={+f.hs || 100}/>
+    <MapView pos={pos} setPos={setPos} zones={open ? d?.zones : null} fly={fly} size={+f.hs || 100}/>
     {st === 'loading' && <div className="pn on" id="ld" style={{display: 'block'}}>🛰️ Querying Sentinel-2 archive &amp; running models…<br/><small>{sec}s elapsed (first run can take 1-2 min{f.ctrl ? ', double with control field' : ''})</small><div/></div>}
     <aside className="pn" id="side">
       <div className="br">FASAL<i>PROOF</i></div><div className="tg">SATELLITE CLAIM INTELLIGENCE</div>
@@ -87,9 +90,10 @@ export default function App() {
       {err && <div id="er">⚠ {err}</div>}
       {st === 'error' && /clear view|Not enough/i.test(err) && <button className="gh" onClick={() => { setF({...f, db: 120, da: 90, hs: 200}); setTimeout(() => setAuto(x => x + 1), 60); }}>↻ Retry with a wider window</button>}
       {st === 'done' && d && <div className="m" style={{marginTop: 10}}><div><small>LOSS</small><b>{d.loss_pct}%</b><span>{d.severity}</span></div><div><small>SCENES</small><b>{d.images_used}</b><span>{d.confidence} confidence</span></div></div>}
+      {d && !open && <button className="gh" onClick={() => setOpen(true)}>▶ Reopen results</button>}
       {api.includes('v') && parseFloat(api.split('v')[1]) < 4 && <p className="nt" style={{color: '#f59e0b'}}>⚠ Old backend detected ({api}). Redeploy on Render: Manual Deploy → Clear build cache &amp; deploy.</p>}
       {hist.length > 0 && <details><summary>🕘 Recent analyses</summary>{hist.map(h => <button key={h.at} className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => { setF(h.f); setPos(h.pos); setFly(x => x + 1); }}>{h.f.nm} · {h.f.cr} · {h.f.ev} · {h.loss}% · {new Date(h.at).toLocaleDateString('en-IN')}</button>)}</details>}
-      {last && st !== 'loading' && <button className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => { setF(last.f); setPos(last.pos); setD(last.d); setWx(last.wx); setCd(last.cd); setSt('done'); setFly(x => x + 1); }}>📂 Load last saved result ({new Date(last.at).toLocaleString('en-IN')})</button>}
+      {last && st !== 'loading' && <button className="gh" style={{display: 'block', width: '100%', textAlign: 'left'}} onClick={() => { setF(last.f); setPos(last.pos); setD(last.d); setWx(last.wx); setCd(last.cd); setSt('done'); setOpen(true); setFly(x => x + 1); }}>📂 Load last saved result ({new Date(last.at).toLocaleString('en-IN')})</button>}
       <label style={{marginTop: 14}}>EXAMPLE LOCATIONS</label>
       {EX.map(p => <button key={p[0]} className="gh" onClick={() => go(p)}>{p[0]}</button>)}
       <button className="gh" onClick={() => navigator.geolocation.getCurrentPosition(p => { setPos({lat: p.coords.latitude, lon: p.coords.longitude}); setFly(x => x + 1); }, () => setErr('Location permission blocked'))}>📍 My location</button>
@@ -97,6 +101,8 @@ export default function App() {
       <p className="nt" style={{marginTop: 14}}>Theil–Sen forecast · bootstrap CI · change-point tests · k-means zones · Bayesian fusion · Monte Carlo. <span id="st">{api}</span></p>
       {d && <details><summary>Raw API response (debug)</summary><pre>{JSON.stringify({...d, zones: d.zones ? '[grid hidden]' : null, forecast: '[hidden]'}, null, 1).slice(0, 1800)}</pre></details>}
     </aside>
-    {d && <Boundary key={d.images_used + f.dt}><Results d={d} wx={wx} f={f} pos={pos} cd={cd} exp={exp}/></Boundary>}
+    {!chat && <button id="chatbtn" onClick={() => setChat(true)}>💬 {({en: 'Ask the assistant', hi: 'सहायक से पूछें', mr: 'सहाय्यकाला विचारा'})[f.lg] || 'Ask the assistant'}</button>}
+    {chat && <Chat lang={f.lg} onClose={() => setChat(false)} onApply={applyChat}/>}
+    {d && open && <Boundary key={d.images_used + f.dt}><Results d={d} wx={wx} f={f} pos={pos} cd={cd} exp={exp} onClose={() => setOpen(false)}/></Boundary>}
   </>);
 }
