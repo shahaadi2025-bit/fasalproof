@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {BUILD} from './version';
 import {health} from './api';
+import {ISSUES, REPO, CONTACT_EMAIL} from './site';
 const WORDS = ['flood', 'hailstorm', 'drought', 'cloudburst', 'pest attack'];
 const CROPS = ['Wheat', 'Rice', 'Soybean', 'Cotton', 'Maize', 'Gram', 'Groundnut', 'Sunflower', 'Potato', 'Onion', 'Tomato', 'Bajra', 'Moong', 'Lentil', 'Sesame', 'Castor'];
 const STEPS = [['Tell us what happened', 'Type it in English, हिन्दी or मराठी, or tap your field on the satellite map.', '💬'], ['Satellite compares before and after', 'Free Sentinel-2 images, cloud-masked pixel by pixel, show how the crop canopy changed.', '🛰️'], ['Weather and crop checks', 'Rainfall is ranked against 10 years of history and read against the crop\'s growth stage.', '🌦️'], ['Get your claim kit', 'The right PMFBY route and deadline, a ready letter, reminders and a signed report.', '📦']];
@@ -44,12 +45,12 @@ function Preview() {
     <div className="heat">{heat}</div></div>);
 }
 export default function Landing() {
-  const root = useRef(), bar = useRef();
+  const root = useRef(), bar = useRef(), [sticky, setSticky] = useState(false);
   useEffect(() => { health().catch(() => {}); }, []); // wake the free server while the visitor reads
   useEffect(() => {
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold: .15});
     root.current.querySelectorAll('.rv').forEach(e => io.observe(e));
-    const sc = () => { const el = root.current; bar.current.style.width = (el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight) * 100) + '%'; };
+    const sc = () => { const el = root.current; bar.current.style.width = (el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight) * 100) + '%'; setSticky(s => { const v = el.scrollTop > 520; return v === s ? s : v; }); };
     root.current.addEventListener('scroll', sc); return () => { io.disconnect(); root.current?.removeEventListener('scroll', sc); };
   }, []);
   const spot = e => { const r = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty('--mx', (e.clientX - r.left) + 'px'); e.currentTarget.style.setProperty('--my', (e.clientY - r.top) + 'px'); };
@@ -83,7 +84,9 @@ export default function Landing() {
         <li><b>Experimental features are labelled</b> (radar check, on-device AI) and switched off by default.</li></ul><p className="src">Data and references: Sentinel-2 (ESA / Copernicus), Earth Search, Open-Meteo, FAO Irrigation &amp; Drainage Paper 56, PMFBY operational guidelines (Ministry of Agriculture &amp; Farmers Welfare).</p></div></section>
       <section className="lw rv"><h2>Questions</h2><div className="lcard wide">{FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></section>
       <section className="lw lfinal rv"><div className="fbox"><h2>See what the satellite saw.</h2><div className="lcta" style={{justifyContent: 'center'}}><a className="lbtn" href="#/app">Open the analysis tool</a><a className="lbtn ghost" href="#/app-chat">💬 Ask the assistant</a></div></div></section>
-      <footer className="lw lfoot">Built for VORTEX 2K26 · Climate, Agriculture &amp; Rural Innovation · {BUILD}</footer>
+      <section className="lw rv" id="contact"><div className="lcard wide"><h3>Contact and feedback</h3><p>Found a problem, or want to use FasalProof in your region? Open an issue on <a href={ISSUES}>GitHub</a>{CONTACT_EMAIL ? <> or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></> : null}. Source code: <a href={REPO}>{REPO.replace('https://', '')}</a>.</p></div></section>
+      {sticky && <a className="stk" href="#/app">Open the analysis tool</a>}
+      <footer className="lw lfoot">Built for VORTEX 2K26 · Climate, Agriculture &amp; Rural Innovation · {BUILD}<br/><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href={ISSUES}>Contact</a></footer>
     </div>
   );
 }

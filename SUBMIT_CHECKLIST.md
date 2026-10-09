@@ -27,3 +27,9 @@
 - [ ] Copy `demo\out\punjab-2025-ajnala-ravi-flood\evidence_report.html` (print to PDF) into `submission\` and link it in the form
 - [ ] Verify `signed_bundle.json` in the app (left panel, "Verify a signed report")
 - [ ] Add the case-study numbers (and the false-positive warning) to the deck notes
+
+## 6. Launch-quality items (added)
+- [ ] Put your real email in `web/src/site.js` (`CONTACT_EMAIL`), or tell me and I will rebuild
+- [ ] Optional: GoatCounter code in `web/src/site.js` for cookieless visit counts (then update privacy.html)
+- [ ] Have someone read `privacy.html` and `terms.html`; they describe what the app does but are not legal advice
+- [ ] Tell me the 20th checklist item (it was cut off in your screenshot)

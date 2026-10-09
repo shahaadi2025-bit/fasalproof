@@ -7,6 +7,7 @@ import {CROPS, CAL, meta, CURS, CC2CUR, setSym} from './crops';
 import {qPut, qAll, qClear} from './offline';
 import {verifyBundle} from './verify';
 import Chat from './Chat';
+import {validate} from './validate';
 import {BUILD} from './version';
 import {record, transcribe} from './ai';
 import {WLANG} from './aiLogic';
@@ -27,6 +28,7 @@ export default function App() {
   useEffect(() => { const t = setTimeout(async () => { const i = await placeInfo(pos.lat, pos.lon); setInfo(i); setF(p => { const inIn = i?.code ? i.code === 'IN' : roughIndia(pos.lat, pos.lon), q = {...p}; if (!p.rulesSet && (i?.code || !inIn)) q.rules = inIn ? 'IN' : 'OTHER'; if (!p.curSet && i?.code && CC2CUR[i.code]) q.cur = CC2CUR[i.code]; return q; }); }, 700); return () => clearTimeout(t); }, [pos.lat, pos.lon]);
   const applyChat = G => { setPos({lat: G.lat, lon: G.lon}); setF(p => ({...p, cr: G.cr, ev: G.ev, dt: G.dt, vl: G.vl || p.vl, ...(G.ar ? {ar: G.ar} : {})})); setFly(x => x + 1); setChat(false); setOpen(true); setTimeout(() => setAuto(x => x + 1), 120); };
   setSym(CURS[f.cur] || '¤');
+  const errs = validate(f);
   const set = k => e => setF({...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value});
   useEffect(() => { health().then(v => setApi(v ? '● API live v' + v : '● API error')).catch(() => setApi('● API waking…')); }, []);
   useEffect(() => { if (st !== 'loading') return; const t0 = Date.now(), i = setInterval(() => setSec(Math.round((Date.now() - t0) / 1000)), 1000); return () => clearInterval(i); }, [st]);
@@ -73,7 +75,7 @@ export default function App() {
         <div><label>CROP</label><select value={f.cr} onChange={set('cr')}>{Object.keys(CROPS).map(x => <option key={x}>{x}</option>)}</select></div>
         <div><label>AREA ({f.unit === 'ha' ? 'HECTARES' : 'ACRES'})</label><input type="number" min=".1" step=".1" value={f.unit === 'ha' ? +(f.ar * 0.4047).toFixed(2) : f.ar} onChange={e => setF({...f, ar: f.unit === 'ha' ? +e.target.value / 0.4047 : e.target.value})}/></div>
         <div><label>CALAMITY</label><select value={f.ev} onChange={set('ev')}>{CAL.map(x => <option key={x}>{x}</option>)}</select></div>
-        <div><label>DATE OF LOSS</label><input type="date" value={f.dt} onChange={set('dt')}/></div>
+        <div><label>DATE OF LOSS</label><input type="date" max={new Date().toISOString().slice(0, 10)} value={f.dt} onChange={set('dt')} aria-invalid={!f.dt || f.dt > new Date().toISOString().slice(0, 10)}/></div>
         <div><label>SOWING DATE</label><input type="date" value={f.sow} onChange={set('sow')}/></div>
         <div><label>HARVEST DATE (IF HARVESTED)</label><input type="date" value={f.hv} onChange={set('hv')}/></div>
         <div><label>SUM INSURED ({CURS[f.cur] || '¤'}/HA)</label><input type="number" min="0" step="1000" value={f.si} onChange={set('si')}/></div>
@@ -97,7 +99,8 @@ export default function App() {
       </details>
       {oq > 0 && <p className="nt" style={{borderColor: '#f59e0b'}}>⏳ {oq} analysis waiting for a connection.</p>}
       <details><summary>🔍 Verify a signed report</summary><input type="file" accept=".json" onChange={onVerify}/>{vr && <p className="nt" style={{marginTop: 8, borderColor: vr.ok ? '#22c55e' : '#ef4444'}}>{vr.ok ? '✔ ' : '✖ '}{vr.why}</p>}</details>
-      <button id="go" disabled={st === 'loading'} onClick={run}>{st === 'loading' ? 'Analysing…' : 'Run satellite analysis'}</button>
+      {errs.length > 0 && <ul id="verr" role="alert">{errs.map(m => <li key={m}>{m}</li>)}</ul>}
+      <button id="go" disabled={st === 'loading' || errs.length > 0} onClick={run}>{st === 'loading' ? 'Analysing…' : 'Run satellite analysis'}</button>
       {err && <div id="er">⚠ {err}</div>}
       {st === 'error' && /clear view|Not enough/i.test(err) && <button className="gh" onClick={() => { setF({...f, db: 120, da: 90, hs: 200}); setTimeout(() => setAuto(x => x + 1), 60); }}>↻ Retry with a wider window</button>}
       {st === 'done' && d && <div className="m" style={{marginTop: 10}}><div><small>LOSS</small><b>{d.loss_pct}%</b><span>{d.severity}</span></div><div><small>SCENES</small><b>{d.images_used}</b><span>{d.confidence} confidence</span></div></div>}
@@ -108,7 +111,9 @@ export default function App() {
       <label style={{marginTop: 14}}>EXAMPLE LOCATIONS</label>
       {EX.map(p => <button key={p[0]} className="gh" onClick={() => go(p)}>{p[0]}</button>)}
       <button className="gh" onClick={() => navigator.geolocation.getCurrentPosition(p => { setPos({lat: p.coords.latitude, lon: p.coords.longitude}); setFly(x => x + 1); }, () => setErr('Location permission blocked'))}>📍 My location</button>
-      <details><summary>ℹ About, data credits &amp; limits</summary><p className="nt" style={{marginTop: 8}}>Data: Sentinel-2 (ESA / Copernicus, free and open) via Earth Search; Esri World Imagery basemap; Open-Meteo weather (CC BY 4.0); FAO-56 crop tables; PMFBY operational guidelines. Built and tested by the FasalProof team. Build {BUILD}. Results are supporting evidence, not an official crop-loss assessment, and have not yet been validated against a large set of field records.</p></details>
+      <details><summary>ℹ About, data credits &amp; limits</summary><p className="nt" style={{marginTop: 8}}>Data: Sentinel-2 (ESA / Copernicus, free and open) via Earth Search; Esri World Imagery basemap; Open-Meteo weather (CC BY 4.0); FAO-56 crop tables; PMFBY operational guidelines. Built and tested by the FasalProof team. Build {BUILD}. Results are supporting evidence, not an official crop-loss assessment, and have not yet been validated against a large set of field records.</p>
+      <p className="nt"><a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="https://github.com/shahaadi2025-bit/fasalproof/issues">Contact</a></p>
+      <button className="gh" onClick={() => { ['fp_hist', 'fp_last', 'fp_exp'].forEach(k => localStorage.removeItem(k)); try { indexedDB.deleteDatabase('fasalproof'); caches.keys().then(ks => ks.forEach(k => caches.delete(k))); } catch {} setHist([]); setLast(null); }}>🗑 Clear my data on this device</button></details>
       <p className="nt" style={{marginTop: 14}}>Theil–Sen forecast · bootstrap CI · change-point tests · k-means zones · Bayesian fusion · Monte Carlo. <span id="st">{api}</span></p>
       {d && <details><summary>Raw API response (debug)</summary><pre>{JSON.stringify({...d, zones: d.zones ? '[grid hidden]' : null, forecast: '[hidden]'}, null, 1).slice(0, 1800)}</pre></details>}
     </aside>

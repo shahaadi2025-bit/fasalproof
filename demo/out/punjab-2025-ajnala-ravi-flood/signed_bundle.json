@@ -1,0 +1,34 @@
+{
+  "payload": {
+    "app": "FasalProof",
+    "case": "punjab-2025-ajnala-ravi-flood",
+    "calamity": "Flood",
+    "crop": "Rice",
+    "loss_date": "2025-08-27",
+    "lat": 32.011,
+    "lon": 74.936,
+    "loss_pct": 53.4,
+    "loss_ci": [
+      49.7,
+      57
+    ],
+    "scenes": 12,
+    "scene_before": "2025-08-21",
+    "scene_after": "2025-09-18",
+    "controls": [
+      {
+        "season": "2024-08-27",
+        "loss": 0
+      },
+      {
+        "season": "2023-08-27",
+        "loss": 0
+      }
+    ]
+  },
+  "hash": "dc783d7f038690b410a03a619bfa057a4e6f7a96b88fdcd2137eaaf20b139624",
+  "signed_at": 1791538709,
+  "sig": "S9YYfjNvbYmvYkUzhpkS6p5JQRk6CGjPN4O5jr6fXXXBDe7eVaftOZo+E+Hj1FJBqLMwPsVPkpyYz+DXS16FCQ==",
+  "key_id": "8jUaKbZbh823",
+  "ephemeral": false
+}
