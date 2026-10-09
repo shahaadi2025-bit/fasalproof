@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {ics, enc, dec, toCsv, letter} from '../src/kit.js';
+import {ics, enc, dec, toCsv, letter} from '../src/kitHelpers.js';
 import {climRain, pctRank} from '../src/clim.js';
 const e = ics([{start: new Date('2026-10-10T06:00:00Z'), title: 'A, B; C', desc: 'line1\nline2'}]);
 assert.ok(e.includes('BEGIN:VEVENT') && e.includes('DTSTART:20261010T060000Z') && e.includes('A\\, B\\; C') && e.includes('line1\\nline2') && e.includes('BEGIN:VALARM'));
@@ -11,3 +11,12 @@ assert.equal(pctRank([1, 2, 3, 4], 5), 100); assert.equal(pctRank([1, 2, 3, 4], 
 const daily = []; for (let y = 2015; y <= 2025; y++) for (let k = -5; k <= 5; k++) { const dt = new Date(Date.UTC(y, 7, 15) + k * 864e5).toISOString().slice(0, 10); daily.push({d: dt, p: y === 2025 ? 30 : 2}); }
 const c = climRain(daily, '2025-08-15'); assert.ok(c && c.cur === 210 && c.pct === 100 && c.hist.length === 10 && c.med === 14, JSON.stringify(c));
 assert.equal(climRain(daily.slice(0, 5), '2025-08-15'), null); console.log('kit + climatology tests passed');
+import {trailingRain} from '../src/clim.js';
+{ const d = []; for (let y = 2015; y <= 2025; y++) for (let k = 0; k < 37; k++) { const dt = new Date(Date.UTC(y, 6, 10) + k * 864e5).toISOString().slice(0, 10); d.push({d: dt, p: y === 2025 ? .1 : 5}); }
+  const t = trailingRain(d, '2025-08-15'); assert.ok(t && Math.abs(t.cur - 3) < 1e-9 && t.pct === 0 && t.hist.length === 10 && t.med === 150, JSON.stringify(t)); assert.equal(trailingRain(d, '2025-07-12'), null, 'incomplete window returns null'); }
+import {meta, routeFor, claimInfo, CURS, areaTxt} from '../src/crops.js';
+{ const f = {cr: 'Wheat', dt: '2025-08-10', ev: 'Flood', ar: 5, rules: 'OTHER', prem: '', notice: ''};
+  assert.equal(meta(f).prem, null); assert.equal(meta({...f, prem: '4'}).prem, 4); assert.equal(routeFor(f, null).ind, false); assert.equal(routeFor({...f, notice: '48'}, null).hrs, 48);
+  const ci = claimInfo({loss_pct: 30, stats: {ci: [20, 40]}}, {...f, notice: '48', si: '1000'}); assert.equal(ci.hrs, 48); assert.equal(ci.dl.toISOString(), '2025-08-12T00:00:00.000Z');
+  assert.equal(claimInfo({loss_pct: 30}, {...f, rules: 'IN'}).hrs, 72); assert.equal(areaTxt({ar: 10, unit: 'ha'}), '4.05 ha'); assert.equal(areaTxt({ar: 3}), '3 acres'); assert.equal(CURS.USD, '$'); }
+console.log('worldwide logic tests passed');

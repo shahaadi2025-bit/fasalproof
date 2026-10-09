@@ -7,34 +7,40 @@ import Crop from './Crop';
 import {signReport} from './verify';
 import AiTab from './AiTab';
 import Kit from './Kit';
-import {claimInfo, inr} from './crops';
+import {claimInfo, inr, areaTxt} from './crops';
 const T = {
   en: {t: 'Crop Loss Evidence Report', r: ['Farmer', 'Location', 'Crop', 'Area', 'Calamity', 'Date of loss', 'GPS', 'Vegetation loss (95% CI)', 'Claim strength', 'Source'], w: 'PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This report is supporting evidence, not an official assessment.'},
   hi: {t: 'फसल नुकसान साक्ष्य रिपोर्ट', r: ['किसान', 'स्थान', 'फसल', 'क्षेत्र', 'आपदा', 'नुकसान की तारीख', 'GPS', 'फसल नुकसान (95% CI)', 'दावे की मज़बूती', 'स्रोत'], w: 'PMFBY: स्थानीय आपदा की सूचना 72 घंटे में 14447, बैंक या फसल बीमा ऐप पर दें। यह सहायक साक्ष्य है, आधिकारिक आकलन नहीं।'},
   mr: {t: 'पीक नुकसान पुरावा अहवाल', r: ['शेतकरी', 'ठिकाण', 'पीक', 'क्षेत्र', 'आपत्ती', 'नुकसानाची तारीख', 'GPS', 'पीक नुकसान (95% CI)', 'दाव्याची ताकद', 'स्रोत'], w: 'PMFBY: स्थानिक आपत्तीची माहिती 72 तासांत 14447, बँक किंवा पीक विमा ॲपवर द्या. हा अहवाल पूरक पुरावा आहे, अधिकृत मूल्यांकन नाही.'}
 };
+Object.assign(T, {
+  es: {t: 'Informe de evidencia de pérdida de cultivo', r: ['Agricultor', 'Ubicación', 'Cultivo', 'Superficie', 'Evento', 'Fecha de la pérdida', 'GPS', 'Pérdida de vegetación (IC 95%)', 'Solidez del reclamo', 'Fuente'], w: 'Este informe es evidencia de apoyo, no una evaluación oficial. Consulta el plazo de aviso de tu póliza.'},
+  fr: {t: 'Rapport de preuve de perte de récolte', r: ['Agriculteur', 'Lieu', 'Culture', 'Surface', 'Sinistre', 'Date de la perte', 'GPS', 'Perte de végétation (IC 95 %)', 'Solidité de la demande', 'Source'], w: 'Ce rapport est une preuve complémentaire, pas une évaluation officielle. Vérifiez le délai de déclaration de votre contrat.'},
+  pt: {t: 'Relatório de evidência de perda de lavoura', r: ['Agricultor', 'Local', 'Cultura', 'Área', 'Evento', 'Data da perda', 'GPS', 'Perda de vegetação (IC 95%)', 'Força do pedido', 'Fonte'], w: 'Este relatório é evidência de apoio, não uma avaliação oficial. Verifique o prazo de aviso da sua apólice.'}
+});
 const tip = {contentStyle: {background: '#0b1222', border: '1px solid #334155', fontSize: 12}};
 export default function Results({d, wx, f, pos, cd, exp, onClose}) {
   const [sg, setSg] = useState(null), [sgErr, setSgErr] = useState(''), [t, setT] = useState('ov'), old = !d.stats, z = d.zones || null, L = T[f.lg] || T.en;
   const s = d.stats || {ci: [d.loss_pct, d.loss_pct], z: 'n/a', confidence: 0.5, exp_post: 'n/a', break_date: null, offset: null};
   const fc = d.forecast || [];
   const late = (Date.now() - new Date(f.dt)) / 864e5, ac = +f.ar;
-  const SC = Math.round(Math.min(35, d.loss_pct * .6) + 15 * s.confidence + (wx?.pts ?? 15) + (late <= 3 ? 20 : late <= 14 ? 12 : 5));
+  const LIM = ((f.rules === 'OTHER' ? +f.notice : 0) || 72) / 24;
+  const SC = Math.round(Math.min(35, d.loss_pct * .6) + 15 * s.confidence + (wx?.pts ?? 15) + (late <= LIM ? 20 : late <= LIM * 4.67 ? 12 : 5));
   const col = SC >= 70 ? '#22c55e' : SC >= 45 ? '#f59e0b' : '#ef4444', tier = SC >= 70 ? 'STRONG' : SC >= 45 ? 'MODERATE' : 'WEAK';
   const off = s.break_date ? `A vegetation break was detected on ${s.break_date}, ${Math.abs(s.offset)} day(s) ${s.offset >= 0 ? 'after' : 'before'} the claimed date. ` : '';
   const M = [['VEGETATION LOSS', d.loss_pct + '%', `95% CI ${s.ci[0]}–${s.ci[1]}%`], ['OBSERVED / EXPECTED', d.post_ndvi + ' / ' + s.exp_post, 'NDVI, Theil–Sen forecast'], ['ANOMALY z-SCORE', s.z, 'σ below expected'],
     ['BREAK DETECTED', s.break_date || 'n/a', s.break_date ? (s.offset >= 0 ? '+' : '') + s.offset + ' d vs claimed date' : 'needs ≥6 scenes'], ['FLOOD WATER Δ', d.water_pct + '%', 'NDWI-based'], ['SEVERE ZONES', z ? z.pct.severe + '%' : 'n/a', z ? 'k-means · ' + z.pixels + ' px' : 'too few clear pixels']];
   const rows = d.series.map((p, i) => ({date: p.date.slice(5), ndvi: p.ndvi, ndwi: p.ndwi, exp: fc[i]?.exp, band: fc[i] ? [fc[i].lo, fc[i].hi] : undefined}));
   const lx = d.series.find(p => p.date >= f.dt)?.date.slice(5);
-  const v = [f.nm, f.vl, f.cr, ac + ' acres', f.ev, f.dt, pos.lat.toFixed(5) + ', ' + pos.lon.toFixed(5), `${d.loss_pct}% (${s.ci[0]}–${s.ci[1]}%) → ~${(ac * d.loss_pct / 100).toFixed(1)} acres`, SC + '/100 ' + tier, d.source + ' · ' + d.images_used + ' scenes'];
+  const v = [f.nm, f.vl, f.cr, areaTxt(f), f.ev, f.dt, pos.lat.toFixed(5) + ', ' + pos.lon.toFixed(5), `${d.loss_pct}% (${s.ci[0]}–${s.ci[1]}%) → ~${(ac * d.loss_pct / 100).toFixed(1)} acres`, SC + '/100 ' + tier, d.source + ' · ' + d.images_used + ' scenes'];
   const last = `FasalProof | ${v[0]}, ${v[1]} | ${v[2]} ${v[3]} | ${v[4]} on ${f.dt} | loss ${d.loss_pct}% (CI ${s.ci[0]}-${s.ci[1]}) | claim strength ${SC}/100 ${tier} | GPS ${v[6]}`;
   const I = claimInfo(d, f);
-  const ex = [['Season / PMFBY premium', `${I.c.season} · ${I.c.premTxt}`], ['Growth stage at loss', I.st ? `${I.st.label} (day ${I.st.d})` : 'sowing date not given'], ['Intimation deadline (72 h)', I.dl.toLocaleString('en-IN')], ['Est. claim (indicative)', I.si ? `${inr(I.lo)} – ${inr(I.hi)} (point ${inr(I.est)})` : 'sum insured not given']];
+  const ex = [[f.rules === 'OTHER' ? 'Season / premium' : 'Season / PMFBY premium', `${I.c.season} · ${I.c.premTxt}`], ['Growth stage at loss', I.st ? `${I.st.label} (day ${I.st.d})` : 'sowing date not given'], [I.hrs ? `Notice deadline (${I.hrs} h)` : 'Notice deadline', I.hrs ? I.dl.toLocaleString('en-IN') : 'enter the notice period from your policy'], ['Est. claim (indicative)', I.si ? `${inr(I.lo)} – ${inr(I.hi)} (point ${inr(I.est)})` : 'sum insured not given']];
   const facts = `Crop: ${f.cr}. Calamity: ${f.ev} on ${f.dt}. Satellite vegetation loss: ${d.loss_pct}% (95% interval ${s.ci[0]} to ${s.ci[1]}%). Confidence the drop is not natural variation: ${(s.confidence * 100).toFixed(0)}%. Claim strength: ${SC} out of 100 (${tier}). Claim route: ${I.route.title}. Intimation deadline: ${I.dl.toLocaleDateString('en-IN')}.`;
   const signNow = async () => { setSgErr(''); try { const b = await signReport({app: 'FasalProof', generated_at: new Date().toISOString(), farmer: f.nm, village: f.vl, crop: f.cr, calamity: f.ev, loss_date: f.dt, area_acres: ac, lat: +pos.lat.toFixed(5), lon: +pos.lon.toFixed(5), loss_pct: d.loss_pct, loss_ci: s.ci, claim_strength: SC, scenes: d.images_used, source: d.source}); setSg(b);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(b, null, 2)], {type: 'application/json'})); a.download = 'fasalproof_signed_report.json'; a.click(); } catch (e) { setSgErr(e.message); } };
   const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['cr', 'Crop science'], ['cl', 'Claim'], ['kit', 'Claim kit'], ['ad', 'Advanced'], ['ai', 'On-device AI'], ['rp', 'Report']];
-  const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN'}[f.lg]; speechSynthesis.speak(u); };
+  const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR'}[f.lg]; speechSynthesis.speak(u); };
   return (
     <section className="pn on" id="hud">
       <div className="tb">{tabs.filter(([k]) => exp || !['ad', 'ai'].includes(k)).map(([k, n]) => <button key={k} className={t === k ? 'a' : ''} onClick={() => setT(k)}>{n}{['ad', 'ai'].includes(k) ? ' ⚗' : ''}</button>)}<button className="x" onClick={onClose} aria-label="Close results" title="Close (Esc)">✕</button></div>
@@ -76,7 +82,7 @@ export default function Results({d, wx, f, pos, cd, exp, onClose}) {
       <div className={'pg' + (t === 'ai' ? ' a' : '')}><AiTab f={f} facts={facts}/></div>
       <div className={'pg' + (t === 'rp' ? ' a' : '')} id="rp">
         <h3 style={{marginTop: 0}}>{L.t}</h3><table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}{ex.map(([k, x]) => <tr key={k}><td>{k}</td><td>{x}</td></tr>)}</tbody></table>
-        <p className="nt">{L.w}</p>
+        <p className="nt">{(f.rules === 'OTHER' && ['en', 'hi', 'mr'].includes(f.lg)) ? 'This report is supporting evidence, not an official assessment. Check the notice period in your insurance policy.' : L.w}</p>
         <button className="gh" onClick={() => { setT('rp'); setTimeout(print, 150); }}>⬇ Print / PDF</button>
         <button className="gh" onClick={() => open('https://wa.me/?text=' + encodeURIComponent(last))}>WhatsApp</button>
         <button className="gh" onClick={speak}>🔊 Read aloud</button>

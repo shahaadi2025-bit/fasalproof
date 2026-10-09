@@ -17,12 +17,12 @@ from pydantic import BaseModel, Field, field_validator
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("fasalproof")
 STAC = "https://earth-search.aws.element84.com/v1/search"
-app = FastAPI(title="FasalProof API", version="4.2")
+app = FastAPI(title="FasalProof API", version="4.3")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class Query(BaseModel):
-    lat: float = Field(ge=6, le=38)     # India bounds
-    lon: float = Field(ge=68, le=98)
+    lat: float = Field(ge=-56, le=84)    # Sentinel-2 land coverage, worldwide
+    lon: float = Field(ge=-180, le=180)
     loss_date: date
     days_before: int = Field(60, ge=30, le=120)
     days_after: int = Field(45, ge=15, le=90)
@@ -108,7 +108,7 @@ def stac_search(body):
 
 @app.get("/")
 @app.get("/health")
-def health(): return {"status": "ok", "app": "FasalProof", "version": "4.2"}
+def health(): return {"status": "ok", "app": "FasalProof", "version": "4.3"}
 
 @app.post("/analyze")
 def analyze(q: Query, request: Request):

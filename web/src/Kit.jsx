@@ -1,18 +1,18 @@
 import {useState} from 'react';
-import {letter, ics, enc, toCsv, dl} from './kit';
+import {letter, ics, enc, toCsv, dl} from './kitHelpers';
 export default function Kit({d, f, pos, I, s}) {
   const [lg, setLg] = useState(f.lg), [txt, setTxt] = useState(null), [msg, setMsg] = useState('');
   const text = txt ?? letter(lg, {f, d, pos, I, s}), flash = m => { setMsg(m); setTimeout(() => setMsg(''), 2500); };
   const reminders = () => {
     const now = Date.now(), fix = t => new Date(Math.max(t, now + 10 * 6e4)), ev = [];
-    if (I.route.ind && I.dl.getTime() > now) ev.push({start: fix(I.dl.getTime() - 6 * 36e5), title: 'FasalProof: crop insurance intimation closes in 6 hours', desc: 'Call 14447, inform your bank or insurer, or use the Crop Insurance app. Deadline: ' + I.dl.toLocaleString('en-IN')});
+    if (I.route.ind && I.dl.getTime() > now) ev.push({start: fix(I.dl.getTime() - 6 * 36e5), title: `FasalProof: crop insurance notice period closes in 6 hours`, desc: (f.rules === 'OTHER' ? 'Notify your insurer. Deadline: ' : 'Call 14447, inform your bank or insurer, or use the Crop Insurance app. Deadline: ') + I.dl.toLocaleString('en-IN')});
     ev.push({start: fix(now + 24 * 36e5), title: 'Check crop insurance claim registration', desc: 'Confirm your intimation was registered and note the complaint or docket number.'}, {start: fix(now + 7 * 864e5), title: 'Follow up on crop insurance claim', desc: 'Ask your bank or insurer for the assessment status. Keep your FasalProof report and photos ready.'});
     dl('fasalproof_reminders.ics', ics(ev), 'text/calendar'); flash('Calendar file downloaded');
   };
   const copy = async (t, m) => { try { await navigator.clipboard.writeText(t); flash(m); } catch { flash('Copy blocked by the browser'); } };
   return (<>
     <h4 style={{margin: '0 0 8px'}}>✉ Intimation letter</h4>
-    <select value={lg} onChange={e => { setLg(e.target.value); setTxt(null); }} style={{marginBottom: 8}}><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select>
+    <select value={lg} onChange={e => { setLg(e.target.value); setTxt(null); }} style={{marginBottom: 8}}><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option></select>
     <textarea value={text} onChange={e => setTxt(e.target.value)} rows={13} style={{width: '100%', padding: 10, background: 'rgba(255,255,255,.06)', color: 'inherit', border: '1px solid var(--b)', borderRadius: 10, font: '400 .8rem Sora', lineHeight: 1.5}}/>
     <button className="gh" onClick={() => copy(text, 'Letter copied')}>Copy</button>
     <button className="gh" onClick={() => dl('crop_loss_letter.txt', text)}>⬇ Download .txt</button>

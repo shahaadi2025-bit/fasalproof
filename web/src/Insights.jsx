@@ -15,7 +15,7 @@ export default function Insights({d, f, wx, cd, pos}) {
   const rows = d.series.map((p, i) => ({date: p.date.slice(5), Observed: p.ndvi, 'EWMA smoothed': +sm[i].toFixed(3), 'HANTS-style fit': hf ? +hf[i].toFixed(3) : undefined}));
   const mc = I.si ? monteCarlo(d.loss_pct, s?.ci || [d.loss_pct, d.loss_pct], I.si * I.ha) : null;
   const late = (Date.now() - new Date(f.dt)) / 864e5, wok = wx?.pts === 30 ? true : wx?.pts === 8 ? false : null;
-  const fu = fuse({conf: s?.confidence ?? .5, wok, off: s?.offset, base: d.baseline_ndvi, late, loss: d.loss_pct, post: I.st?.post, bad: I.st?.bad});
+  const fu = fuse({conf: s?.confidence ?? .5, wok, off: s?.offset, base: d.baseline_ndvi, late: late * 72 / (I.hrs || 72), loss: d.loss_pct, post: I.st?.post, bad: I.st?.bad});
   const col = fu.p >= .75 ? '#22c55e' : fu.p >= .5 ? '#f59e0b' : '#ef4444', ok = cd && !cd.error;
   return (<>
     <h4 style={{margin: 0}}>Bayesian evidence fusion</h4>

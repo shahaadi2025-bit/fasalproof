@@ -15,7 +15,7 @@ Check "Sign, verify and tamper detection" {
   $bad = Invoke-RestMethod "$Api/verify" -Method Post -ContentType $j -Body (@{hash = ("b" * 64); signed_at = $s.signed_at; sig = $s.sig} | ConvertTo-Json) -TimeoutSec 60
   if (-not $ok.valid) { throw "a valid signature was rejected" }; if ($bad.valid) { throw "a tampered hash was accepted" }; "genuine=valid, tampered=rejected"
 }
-$sites = @(@{n = "Punjab (Ludhiana)"; lat = 30.90; lon = 75.85; d = "2025-04-12"}, @{n = "Maharashtra (Beed)"; lat = 18.99; lon = 75.76; d = "2025-11-20"}, @{n = "Rajasthan (Jaipur)"; lat = 26.91; lon = 75.79; d = "2025-12-15"})
+$sites = @(@{n = "Punjab (Ludhiana)"; lat = 30.90; lon = 75.85; d = "2025-04-12"}, @{n = "Maharashtra (Beed)"; lat = 18.99; lon = 75.76; d = "2025-11-20"}, @{n = "Rajasthan (Jaipur)"; lat = 26.91; lon = 75.79; d = "2025-12-15"}, @{n = "USA (Iowa)"; lat = 42.00; lon = -93.50; d = "2025-08-10"}, @{n = "Brazil (Parana)"; lat = -23.30; lon = -51.20; d = "2025-07-20"})
 foreach ($t in $sites) {
   Check ("Satellite analysis: " + $t.n) {
     $b = @{lat = $t.lat; lon = $t.lon; loss_date = $t.d} | ConvertTo-Json

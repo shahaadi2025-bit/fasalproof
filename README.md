@@ -1,69 +1,65 @@
-# 🛰️ FasalProof: Satellite Proof for Every Farmer's Crop Insurance Claim
-VORTEX 2K26 | Theme: Climate, Agriculture & Rural Innovation
+# FasalProof: prove your crop loss from space
 
-## Problem
-Indian farmers lose crop insurance (PMFBY) claims because they cannot prove their loss within the 72-hour window. Surveys are slow and paperwork is in English.
+**VORTEX 2K26 · Climate, Agriculture & Rural Innovation**
 
-## Solution
-Drop a pin on your field and enter the date of loss. FasalProof pulls free Sentinel-2 imagery, compares crop vegetation health (NDVI) before and after the calamity, estimates the loss %, and produces a printable claim-evidence report in English, Hindi, or Marathi.
+Free satellite and weather evidence for crop-insurance claims, for any farm on land worldwide.
+A farmer describes what happened (in words or on a map); FasalProof compares Sentinel-2 satellite images from before and after the loss, checks the weather against that place's own history, applies the claim rules (India's PMFBY, or the farmer's own policy terms elsewhere), and produces a claim kit: letter, deadline reminders and a signed, tamper-evident report.
 
-## Impact and scalability
-- Cost to farmer: ₹0. Data: free ESA/AWS open data. No API keys.
-- Works for any plot in India; scales by adding states and languages.
-- Reusable by banks, FPOs, NGOs and insurers for faster claim verification.
+- Website: https://shahaadi2025-bit.github.io/fasalproof/
+- API: https://fasalproof.onrender.com (`/docs` for the interactive reference)
+- Source: https://github.com/shahaadi2025-bit/fasalproof
 
-## Tech
-FastAPI + rasterio (Python) | STAC search on Earth Search | HTML/JS frontend | Render + GitHub Pages (free tiers)
+## Architecture
+```mermaid
+flowchart LR
+  U["Farmer or insurer browser<br/>React + Vite PWA"] -->|analysis request| A["FastAPI on Render (Docker)<br/>numpy, rasterio, Ed25519"]
+  A -->|STAC search + COG windows| S[("Sentinel-2 L2A<br/>AWS open data")]
+  A -->|optional radar check| R[("Sentinel-1 RTC<br/>Planetary Computer")]
+  U -->|geocoding, weather, 10-year history| W[("Open-Meteo")]
+  U -->|basemap tiles| E[("Esri World Imagery")]
+  A -->|signed report| U
+```
+
+## What it does
+| Area | Detail |
+|---|---|
+| Loss estimate | Cloud-masked (per pixel) NDVI before vs after; loss % with a 95% bootstrap interval |
+| Counterfactual | Theil-Sen robust regression predicts the healthy curve; z-score and confidence the drop is not natural variation |
+| Timing | Change-point detection compares the detected break date with the claimed date |
+| Damage zones | 24x24 pixel change map clustered by k-means into severe / moderate / stable, drawn on the field |
+| Weather | Rain around the loss date (or the 30 days before it, for drought) ranked against the same window in the previous 10 years |
+| Crops | 20 crops with FAO-56 stage lengths and Kc; stage at loss, senescence guard, phenology consistency |
+| Claims | India: PMFBY route (localised, area-yield, post-harvest, mid-season), 72-hour deadline, premium by class. Elsewhere: your own premium and notice period |
+| Claim kit | Letter in six languages, calendar reminders (.ics), shareable link, CSV export, document checklist |
+| Trust | Ed25519-signed report that anyone can verify; every result shows its uncertainty and scene count |
+| Access | Assistant that fills the form from plain sentences (English, Hindi, Marathi, Spanish, French, Portuguese); installable, offline queue |
+| Experimental (off by default) | Sentinel-1 radar flood check, on-device AI photo check, voice place search, Bayesian evidence fusion |
+
+## Tech stack
+Frontend: React 18, Vite, Leaflet, Recharts. Backend: Python 3.11, FastAPI, rasterio, numpy, pydantic, cryptography. Data: Sentinel-2 (ESA/Copernicus) via Earth Search, Open-Meteo, FAO-56, PMFBY guidelines. Ops: Docker, GitHub Pages, Render, GitHub Actions CI, pytest, Node tests.
 
 ## Run locally
-    pip install -r requirements.txt
-    uvicorn main:app --reload
-    # POST /analyze {"lat":18.99,"lon":75.76,"loss_date":"2025-09-20"}
+```powershell
+.\scripts\run.ps1            # backend on http://127.0.0.1:8000/docs
+cd web; npm install; npm run dev
+```
 
-## Limitations (honest)
-NDVI is an indicator, not an official assessment; cloud cover can limit images; small plots are approximated by a 200 m square.
+## Deploy and verify
+```powershell
+.\scripts\update-all.ps1     # push, redeploy, wait, verify
+.\scripts\status.ps1         # plain-language DONE / TO DO list
+.\scripts\verify-live.ps1    # full end-to-end test on the live system
+```
+Set `SIGNING_KEY` (base64 of 32 random bytes) in the host's environment so report signatures survive restarts.
 
-## Features
-- Tap-on-satellite-map plot selection + GPS "use my location"
-- Real Sentinel-2 NDVI before/after analysis with before/after scene thumbnails
-- Weather corroboration (rain/heat) from free Open-Meteo archive
-- Claim Strength Score (satellite + weather + 72-hour timeliness)
-- Reports in English / Hindi / Marathi, printable PDF, QR code, WhatsApp share, read-aloud
-- Hardened API: validation, cache, rate limit, retries, parallel reads
-- Plot-level cloud masking (SCL), flood-water detection (NDWI), radar score breakdown, analyst narrative, offline-capable PWA
+## Tests
+`pytest -q` (backend: statistics, signing, worldwide bounds, validation metrics) and `cd web && npm test` (frontend logic: analytics, claim rules, parser, climatology).
 
-## Data sources (no placeholder data)
-- PMFBY premium caps (2% Kharif, 1.5% Rabi food and oilseed; 5% annual commercial/horticultural), claim types, 72-hour intimation, 14-day post-harvest window, 25% prevented-sowing and mid-season caps: PMFBY operational guidelines (PIB, Ministry of Agriculture, Rajya Sabha answers).
-- Crop growth-stage lengths and Kc values: FAO Irrigation & Drainage Paper 56, Tables 11 and 12 (regional averages; use local data where available).
-- Not hard-coded because they vary by state and policy: sum insured (Scale of Finance), notified crops, enrolment cut-off dates. Users enter their policy values.
+## Validation
+**Not yet measured.** Fill `validation/events.csv` with documented damaged fields and no-event fields, run `.\scripts\validate.ps1`, and paste the table here. No accuracy figure is claimed until then. Spot checks on arbitrary no-event dates showed 14-19% apparent loss, so losses below roughly 25% should not be read as damage.
 
-## v4.2 additions
-- **Tamper-evident reports:** SHA-256 over canonical JSON + Ed25519 signature (server key). Set `SIGNING_KEY` on the host so signatures survive restarts. Verify any downloaded report from the app.
-- **Sentinel-1 radar flood check** (Planetary Computer RTC, free): VV < -15 dB and >3 dB drop vs. a same-orbit pre-loss scene. Works through cloud.
-- **Offline-first PWA:** service worker + IndexedDB queue; analyses requested offline run automatically when back online.
-- **HANTS-style harmonic smoothing** (rejects cloud dips only before the loss date) and **split-conformal band** from leave-one-out Theil-Sen residuals.
-- Tests: `pytest` (8) and `npm test` (4 JS assertions), both in CI.
+## Limitations
+Supporting evidence, not an official assessment. NDVI cannot identify the crop. The plot is a square approximation. Stage lengths are FAO regional averages. Sum insured, notified crops and cut-off dates come from the user's policy. The claim engine encodes only India's PMFBY. Cloud cover can leave too few usable scenes.
 
-## On-device AI (runs in the browser, no server, no API key)
-- **Damage photo check:** CLIP (`Xenova/clip-vit-base-patch32`) zero-shot classification, compared with the claimed calamity. Screening aid only.
-- **Voice place search:** Whisper-tiny multilingual (English / Hindi / Marathi) via transformers.js.
-- **Plain-language explanation:** Qwen2.5-0.5B-Instruct (4-bit, WebGPU when available), constrained to the report's own numbers.
-- Models download once from Hugging Face and are cached by the browser. Built with `@huggingface/transformers` (ONNX Runtime Web); `.npmrc` disables install scripts because the Node-only runtime is not needed.
-
-## Claim kit (v4.3)
-- Intimation letter generator (English / Hindi / Marathi, editable) with copy, download and WhatsApp.
-- Calendar reminders (.ics): 72-hour deadline alert where it applies, plus follow-ups.
-- Shareable link that restores inputs and pin; CSV export of the NDVI series and forecast band.
-- Local history of recent analyses (browser storage only).
-- Rainfall climatology: rain around the loss date ranked against the same window in the previous 10 years (Open-Meteo archive).
-
-## Validation results
-_Not measured yet._ Fill `validation/events.csv` with documented events, run `.\scripts\validate.ps1`, and paste the real table here. No accuracy figure is claimed until then.
-
-## Reliability and honesty features
-`scripts/verify-live.ps1` (live end-to-end check), automatic retries for the sleeping free server, "retry with a wider window" on cloud cover, last-result recall for demos, experimental features hidden by default, low-data warnings, and an in-app About panel with data credits and limits.
-
-## Assistant and usability (v4.4)
-- Guided assistant (English / Hindi / Marathi) fills location, crop, calamity and date from plain sentences, so users need not use the map. It is a rule-based parser, not an LLM, so it is instant and predictable.
-- Results panel has a close button (also Esc) and a "Reopen results" button.
-- `scripts/status.ps1` shows what is done and what is left.
+## Data and licences
+Sentinel-2: free and open (Copernicus). Open-Meteo: CC BY 4.0, free tier for non-commercial use. Esri World Imagery: check Esri's terms for your use. Code: MIT (see LICENSE). Originality and tooling notes: DISCLOSURE.md.

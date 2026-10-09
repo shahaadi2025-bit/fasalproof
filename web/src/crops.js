@@ -31,6 +31,7 @@ Object.values(CROPS).forEach(c => { c.days = total(c); });
 export const CAL = ['Flood', 'Hailstorm', 'Cloudburst', 'Landslide', 'Natural fire / lightning', 'Cyclone / storm', 'Unseasonal rain', 'Drought / dry spell', 'Pest / disease'];
 export const seasonOf = d => { const m = new Date(d).getMonth() + 1; return m >= 6 && m <= 10 ? 'Kharif' : (m >= 11 || m <= 3) ? 'Rabi' : 'Summer / Zaid'; };
 export function meta(f) {
+  if (f.rules === 'OTHER') { const c = CROPS[f.cr] || CROPS.Wheat, p = f.prem === '' || f.prem == null ? null : +f.prem; return {c, season: 'Your local season', prem: p, premTxt: p == null ? 'enter the rate from your policy' : p + '% of sum insured (from your policy)'}; }
   const c = CROPS[f.cr] || CROPS.Wheat, s = seasonOf(f.sow || f.dt);
   const p = (c.cls === 'comm' || c.cls === 'hort') ? 5 : s === 'Kharif' ? 2 : s === 'Rabi' ? 1.5 : null;
   return {c, season: s, prem: p, premTxt: p == null ? 'state-notified (summer crops)' : p + '% of sum insured (max, or actuarial rate if lower)'};
@@ -57,6 +58,7 @@ export function phenology(d, f) {
 }
 // Claim route per PMFBY guidelines (localised / post-harvest / area-yield / mid-season adversity).
 export function routeFor(f, st) {
+  if (f.rules === 'OTHER') { const h = +f.notice || 0; return {ind: h > 0, ok: null, hrs: h, title: 'Check your national scheme and policy', txt: 'Claim routes, covered perils and notice periods differ by country and by policy. FasalProof provides objective satellite and weather evidence only; it does not apply any country-specific rules. ' + (h > 0 ? `The notice period you entered (${h} hours) is used for the deadline.` : 'Enter the notice period from your policy to get a deadline.'), noDl: 'Notice periods differ by country and policy. Check yours and report the loss to your insurer as early as possible.'}; }
   const ev = f.ev, since = f.hv ? (new Date(f.dt) - new Date(f.hv)) / 864e5 : null, inPost = since !== null && since >= 0 && since <= 14, nearHarvest = st && st.left != null && st.left <= 15 && !st.post;
   const mid = nearHarvest ? 'Mid-season adversity advance is NOT invoked within 15 days before normal harvest.' : 'Mid-season adversity: if the state notifies expected yield below 50%, an on-account payment of up to 25% of sum insured can be released.';
   if (['Hailstorm', 'Cyclone / storm', 'Unseasonal rain'].includes(ev) && inPost) return {ind: true, ok: true, title: 'Post-harvest loss (individual farm)', txt: `Harvested ${Math.round(since)} day(s) before the loss. Covered up to 14 days after harvest for crop left cut and spread to dry. Intimate within 72 hours.`};
@@ -67,10 +69,14 @@ export function routeFor(f, st) {
   if (ev === 'Drought / dry spell') return {ind: false, ok: true, title: 'Area-yield approach (not an individual plot claim)', txt: `Drought and dry spells are settled at insurance-unit level from crop-cutting yields. ${mid}`};
   return {ind: false, ok: true, title: 'Area-yield approach (not an individual plot claim)', txt: 'Widespread pest and disease losses are covered through area-yield assessment, not as an individual plot claim.'};
 }
-export const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+export const CURS = {INR: '₹', USD: '$', EUR: '€', GBP: '£', BRL: 'R$', MXN: 'MX$', ARS: 'AR$', AUD: 'A$', CAD: 'C$', ZAR: 'R', KES: 'KSh', NGN: '₦', ETB: 'Br', PKR: 'Rs', BDT: '৳', IDR: 'Rp', PHP: '₱', VND: '₫', CNY: '¥', TRY: '₺'};
+export const CC2CUR = {IN: 'INR', US: 'USD', GB: 'GBP', BR: 'BRL', MX: 'MXN', AR: 'ARS', AU: 'AUD', CA: 'CAD', ZA: 'ZAR', KE: 'KES', NG: 'NGN', ET: 'ETB', PK: 'PKR', BD: 'BDT', ID: 'IDR', PH: 'PHP', VN: 'VND', CN: 'CNY', TR: 'TRY', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', PT: 'EUR', IE: 'EUR', GR: 'EUR', PL: 'EUR'};
+let SYM = '₹'; export const setSym = s => { SYM = s; };
+export const inr = n => SYM + Math.round(n).toLocaleString(SYM === '₹' ? 'en-IN' : undefined);
+export const areaTxt = f => f.unit === 'ha' ? `${(f.ar * 0.4047).toFixed(2)} ha` : `${f.ar} acres`;
 export function claimInfo(d, f) {
   const m = meta(f), ha = (+f.ar || 0) * 0.4047, si = +f.si || 0, L = d.loss_pct, ci = d.stats?.ci || [L, L], st = stage(f.cr, f.sow, f.dt);
-  const dl = new Date(new Date(f.dt).getTime() + 72 * 36e5), p = m.prem || 0;
+  const hrs = f.rules === 'OTHER' ? (+f.notice || 0) : 72, dl = new Date(new Date(f.dt).getTime() + hrs * 36e5), p = m.prem || 0;
   return {c: {...m.c, season: m.season, prem: p, premTxt: m.premTxt}, ha, si, prem: si * ha * p / 100, est: si * ha * L / 100, lo: si * ha * ci[0] / 100, hi: si * ha * ci[1] / 100,
-    st, route: routeFor(f, st), dl, open: Date.now() <= dl, lateDays: Math.max(0, Math.round((Date.now() - dl) / 864e5)), base: d.baseline_ndvi};
+    st, route: routeFor(f, st), hrs, dl, open: Date.now() <= dl, lateDays: Math.max(0, Math.round((Date.now() - dl) / 864e5)), base: d.baseline_ndvi};
 }

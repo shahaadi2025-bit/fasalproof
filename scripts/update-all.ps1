@@ -15,6 +15,7 @@ Write-Host "Local backend is version $v and all files are present." -ForegroundC
 Step "2. Clean stale build files and push to GitHub"
 $ref = Get-Content docs\index.html -Raw
 Get-ChildItem docs\assets -File -ErrorAction SilentlyContinue | Where-Object { $ref -notmatch [regex]::Escape($_.Name) } | ForEach-Object { Write-Host "  removing stale file $($_.Name)"; Remove-Item $_.FullName -Force }
+foreach ($old in 'web\src\kit.js', 'web\src\chat.js') { if (Test-Path $old) { Write-Host "  removing renamed file $old"; Remove-Item $old -Force } }
 git config core.autocrlf false
 git config http.postBuffer 524288000
 git fetch origin 2>&1 | Out-Null

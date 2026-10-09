@@ -9,7 +9,7 @@ export default function Crop({d, f}) {
   return (<>
     <h4 style={{margin: '0 0 8px'}}>Crop profile · {f.cr}</h4>
     <table><tbody>
-      <tr><td>PMFBY class</td><td>{CLS[c.cls]} · {m.season} · farmer premium {m.premTxt}</td></tr>
+      <tr><td>{f.rules === 'OTHER' ? 'Crop class' : 'PMFBY class'}</td><td>{CLS[c.cls]} · {m.season} · farmer premium {m.premTxt}</td></tr>
       <tr><td>Stage lengths (days)</td><td>{c.st.join(' / ')} = {T} d total (initial / development / mid / late)</td></tr>
       <tr><td>FAO Kc (ini / mid / end)</td><td>{c.kc ? c.kc.join(' / ') : 'not used for paddy (standing water dominates)'}</td></tr>
       <tr><td>Data source</td><td>{c.reg}{c.proxy ? ' (proxy: use local data)' : ''}</td></tr>

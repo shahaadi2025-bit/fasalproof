@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
-import {parse, nextNeed, Q} from './chat';
+import {parse, nextNeed, Q} from './chatParser';
 const CROPS = ['Wheat', 'Rice', 'Soybean', 'Cotton', 'Maize', 'Gram (Chickpea)'], EVS = ['Flood', 'Hailstorm', 'Drought / dry spell', 'Pest / disease', 'Cyclone / storm'];
 const iso = n => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
-export default function Chat({lang, onClose, onApply}) {
+export default function Chat({lang, cc, onClose, onApply}) {
   const q = Q[lang] || Q.en, [msgs, setMsgs] = useState([{r: 'bot', t: q.hi, chips: [{l: q.loc, k: 'loc'}]}]), [F, setF] = useState({}), [txt, setTxt] = useState(''), [busy, setBusy] = useState(false), end = useRef();
   useEffect(() => { end.current?.scrollIntoView({block: 'end'}); }, [msgs]);
   const say = (r, t, chips) => setMsgs(m => [...m, {r, t, chips}]);
@@ -10,10 +10,10 @@ export default function Chat({lang, onClose, onApply}) {
     if (G.place && !G.lat) {
       setBusy(true);
       try {
-        const res = (await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(G.place)}&count=5&language=en&format=json&countryCode=IN`)).json()).results || [];
+        const res = (await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(G.place)}&count=5&language=en&format=json${cc && cc !== 'ALL' ? '&countryCode=' + cc : ''}`)).json()).results || [];
         if (!res.length) { say('bot', q.nf(G.place)); setBusy(false); return setF({...G, place: undefined}); }
-        if (res.length > 1) { setBusy(false); setF(G); return say('bot', q.pick, res.map(h => ({l: [h.name, h.admin2, h.admin1].filter(Boolean).join(', '), k: 'pick', h}))); }
-        G = {...G, lat: res[0].latitude, lon: res[0].longitude, vl: [res[0].name, res[0].admin2, res[0].admin1].filter(Boolean).join(', ')};
+        if (res.length > 1) { setBusy(false); setF(G); return say('bot', q.pick, res.map(h => ({l: [h.name, h.admin2, h.admin1, h.country].filter(Boolean).join(', '), k: 'pick', h}))); }
+        G = {...G, lat: res[0].latitude, lon: res[0].longitude, vl: [res[0].name, res[0].admin2, res[0].admin1, res[0].country].filter(Boolean).join(', ')};
       } catch { say('bot', q.nf(G.place)); setBusy(false); return setF({...G, place: undefined}); }
       setBusy(false);
     }
