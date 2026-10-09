@@ -78,3 +78,6 @@ table{width:100%;border-collapse:collapse}td{padding:7px 3px;border-bottom:1px s
 
 :focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
 html{color-scheme:dark}
+
+.rpimgs{display:flex;gap:10px;margin:0 0 12px}.rpimgs figure{margin:0;flex:1;font-size:.72rem;color:var(--d)}.rpimgs img{width:100%;display:block;border-radius:8px}
+@media print{.rpimgs{break-inside:avoid}}

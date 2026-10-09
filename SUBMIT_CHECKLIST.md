@@ -21,3 +21,9 @@
 - [ ] Website link, GitHub link, API link, video link
 - [ ] Team names and roles (replace the two ADD placeholders in SUBMISSION.md first)
 - [ ] Submit by 14 Oct to leave a safety day; re-open every link afterwards
+
+## 5. Documented-event evidence (added)
+- [ ] Run `.\scripts\demo-case.ps1`; fill the results table in `EVIDENCE.md` section 3 from `demo\out\...\raw_results.json`
+- [ ] Copy `demo\out\punjab-2025-ajnala-ravi-flood\evidence_report.html` (print to PDF) into `submission\` and link it in the form
+- [ ] Verify `signed_bundle.json` in the app (left panel, "Verify a signed report")
+- [ ] Add the case-study numbers (and the false-positive warning) to the deck notes

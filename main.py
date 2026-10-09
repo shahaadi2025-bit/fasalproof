@@ -8,7 +8,7 @@ import numpy as np, rasterio, requests
 from rasterio.warp import transform_bounds
 from rasterio.windows import from_bounds
 from rasterio.enums import Resampling
-from ml import ml_stats, zones_from_grids, flood_stats
+from ml import ml_stats, zones_from_grids, flood_stats, chip_b64
 from sign import sign as sign_hash, verify as verify_sig, PUB_B64, KEY_ID, EPHEMERAL
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, field_validator
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("fasalproof")
 STAC = "https://earth-search.aws.element84.com/v1/search"
-app = FastAPI(title="FasalProof API", version="4.3")
+app = FastAPI(title="FasalProof API", version="4.4")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class Query(BaseModel):
@@ -82,6 +82,24 @@ def ndvi_grid(item, bbox, n=24):
     ok = np.isin(scl, [4, 5, 6]) & (red > 0) & (nir > 0)
     return np.where(ok, (nir - red) / (nir + red + 1e-6), np.nan)
 
+def rgb_chip(item, bbox, n=120):
+    """True-colour PNG (base64) of the plot and its surroundings from one scene."""
+    a = item["assets"]; bands = []
+    with rasterio.Env(AWS_NO_SIGN_REQUEST="YES", GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif", GDAL_HTTP_TIMEOUT="20"):
+        for k in ("red", "green", "blue"):
+            with rasterio.open(a[k]["href"]) as s:
+                w = from_bounds(*transform_bounds("EPSG:4326", s.crs, *bbox), transform=s.transform)
+                bands.append(s.read(1, window=w, out_shape=(n, n), resampling=Resampling.bilinear).astype("float32"))
+    return chip_b64(*bands)
+
+def make_chips(bi, ai, bd, ad, q):
+    try:
+        if not bi or not ai: return None
+        half = max(3 * q.half_size_m, 300); bb2 = bbox_of(q.lat, q.lon, half)
+        return {"half_m": half, "plot_frac": round(q.half_size_m / half, 3), "before": {"date": bd, "png": rgb_chip(bi, bb2)}, "after": {"date": ad, "png": rgb_chip(ai, bb2)}}
+    except Exception as e:
+        log.warning("chips failed: %s", e); return None
+
 def damage_zones(bi, ai, bbox):
     try:
         if not bi or not ai: return None
@@ -108,7 +126,7 @@ def stac_search(body):
 
 @app.get("/")
 @app.get("/health")
-def health(): return {"status": "ok", "app": "FasalProof", "version": "4.3"}
+def health(): return {"status": "ok", "app": "FasalProof", "version": "4.4"}
 
 @app.post("/analyze")
 def analyze(q: Query, request: Request):
@@ -140,7 +158,8 @@ def analyze(q: Query, request: Request):
     for f in feats: fd.setdefault(f["properties"]["datetime"][:10], f)
     stats, fc = ml_stats(pts, q.loss_date, bv, av)
     zones = damage_zones(fd.get(before[-1][0]), fd.get(after[0][0]), bb)
-    out = {"forecast": fc, "stats": stats, "zones": zones, "series": [{"date": d, "ndvi": round(x[0], 3), "ndwi": round(x[1], 3)} for d, x in pts],
+    chips = make_chips(fd.get(before[-1][0]), fd.get(after[0][0]), before[-1][0], after[0][0], q)
+    out = {"forecast": fc, "stats": stats, "zones": zones, "chips": chips, "series": [{"date": d, "ndvi": round(x[0], 3), "ndwi": round(x[1], 3)} for d, x in pts],
         "baseline_ndvi": round(base, 3), "post_ndvi": round(post, 3), "loss_pct": loss, "water_pct": water,
         "severity": "severe" if loss >= 50 else "moderate" if loss >= 25 else "low",
         "confidence": "high" if n >= 8 else "medium" if n >= 5 else "low", "images_used": n,

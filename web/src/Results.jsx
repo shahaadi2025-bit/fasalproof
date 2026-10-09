@@ -7,6 +7,7 @@ import Crop from './Crop';
 import {signReport} from './verify';
 import AiTab from './AiTab';
 import Kit from './Kit';
+import Chips, {ReportImages} from './Chips';
 import {claimInfo, inr, areaTxt} from './crops';
 const T = {
   en: {t: 'Crop Loss Evidence Report', r: ['Farmer', 'Location', 'Crop', 'Area', 'Calamity', 'Date of loss', 'GPS', 'Vegetation loss (95% CI)', 'Claim strength', 'Source'], w: 'PMFBY: report localised calamities within 72 hours via 14447, your bank or the crop insurance app. This report is supporting evidence, not an official assessment.'},
@@ -37,7 +38,7 @@ export default function Results({d, wx, f, pos, cd, exp, onClose}) {
   const I = claimInfo(d, f);
   const ex = [[f.rules === 'OTHER' ? 'Season / premium' : 'Season / PMFBY premium', `${I.c.season} · ${I.c.premTxt}`], ['Growth stage at loss', I.st ? `${I.st.label} (day ${I.st.d})` : 'sowing date not given'], [I.hrs ? `Notice deadline (${I.hrs} h)` : 'Notice deadline', I.hrs ? I.dl.toLocaleString('en-IN') : 'enter the notice period from your policy'], ['Est. claim (indicative)', I.si ? `${inr(I.lo)} – ${inr(I.hi)} (point ${inr(I.est)})` : 'sum insured not given']];
   const facts = `Crop: ${f.cr}. Calamity: ${f.ev} on ${f.dt}. Satellite vegetation loss: ${d.loss_pct}% (95% interval ${s.ci[0]} to ${s.ci[1]}%). Confidence the drop is not natural variation: ${(s.confidence * 100).toFixed(0)}%. Claim strength: ${SC} out of 100 (${tier}). Claim route: ${I.route.title}. Intimation deadline: ${I.dl.toLocaleDateString('en-IN')}.`;
-  const signNow = async () => { setSgErr(''); try { const b = await signReport({app: 'FasalProof', generated_at: new Date().toISOString(), farmer: f.nm, village: f.vl, crop: f.cr, calamity: f.ev, loss_date: f.dt, area_acres: ac, lat: +pos.lat.toFixed(5), lon: +pos.lon.toFixed(5), loss_pct: d.loss_pct, loss_ci: s.ci, claim_strength: SC, scenes: d.images_used, source: d.source}); setSg(b);
+  const signNow = async () => { setSgErr(''); try { const b = await signReport({app: 'FasalProof', generated_at: new Date().toISOString(), farmer: f.nm, village: f.vl, crop: f.cr, calamity: f.ev, loss_date: f.dt, area_acres: ac, lat: +pos.lat.toFixed(5), lon: +pos.lon.toFixed(5), loss_pct: d.loss_pct, loss_ci: s.ci, claim_strength: SC, scenes: d.images_used, source: d.source, scene_before: d.chips?.before.date || null, scene_after: d.chips?.after.date || null, weather: wx?.msg || null}); setSg(b);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(b, null, 2)], {type: 'application/json'})); a.download = 'fasalproof_signed_report.json'; a.click(); } catch (e) { setSgErr(e.message); } };
   const tabs = [['ov', 'Overview'], ['sg', 'Signal'], ['dm', 'Damage map'], ['wx', 'Weather'], ['cr', 'Crop science'], ['cl', 'Claim'], ['kit', 'Claim kit'], ['ad', 'Advanced'], ['ai', 'On-device AI'], ['rp', 'Report']];
   const speak = () => { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(last.replace(/\|/g, '.')); u.lang = {en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', es: 'es-ES', fr: 'fr-FR', pt: 'pt-BR'}[f.lg]; speechSynthesis.speak(u); };
@@ -65,6 +66,7 @@ export default function Results({d, wx, f, pos, cd, exp, onClose}) {
         <p className="nt">Solid white = satellite NDVI. Dashed band = what a healthy field was expected to show (robust regression on pre-loss scenes). Pink line = claimed loss date.</p>
       </div>
       <div className={'pg' + (t === 'dm' ? ' a' : '')}>
+        {d.chips && <Chips chips={d.chips}/>}
         {z ? <><img id="hm" className="pix" src={heatUrl(z.grid)} alt="damage zones"/>
           <div className="lg"><span><i style={{background: '#ef4444'}}/>Severe</span><span><i style={{background: '#f59e0b'}}/>Moderate</span><span><i style={{background: '#22c55e'}}/>Stable</span><span><i style={{background: '#334155'}}/>Cloud/no data</span></div>
           <p className="nt">Pixel-level change map clustered by k-means: {z.pct.severe}% severe, {z.pct.moderate}% moderate, {z.pct.stable}% stable. Centres (ΔNDVI): {z.centers.join(', ')}. Also overlaid on your field.</p></>
@@ -81,7 +83,9 @@ export default function Results({d, wx, f, pos, cd, exp, onClose}) {
       <div className={'pg' + (t === 'ad' ? ' a' : '')}><Insights d={d} f={f} wx={wx} cd={cd} pos={pos}/></div>
       <div className={'pg' + (t === 'ai' ? ' a' : '')}><AiTab f={f} facts={facts}/></div>
       <div className={'pg' + (t === 'rp' ? ' a' : '')} id="rp">
-        <h3 style={{marginTop: 0}}>{L.t}</h3><table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}{ex.map(([k, x]) => <tr key={k}><td>{k}</td><td>{x}</td></tr>)}</tbody></table>
+        <h3 style={{marginTop: 0}}>{L.t}</h3>
+        {d.chips && <ReportImages chips={d.chips}/>}<table><tbody>{L.r.map((k, i) => <tr key={k}><td>{k}</td><td>{v[i]}</td></tr>)}{ex.map(([k, x]) => <tr key={k}><td>{k}</td><td>{x}</td></tr>)}</tbody></table>
+        {wx?.msg && <p className="nt" style={{marginBottom: 8}}><b>Weather context.</b> {wx.msg}{wx.clim ? ` (10-year median ${wx.clim.med.toFixed(0)} mm for the same window.)` : ''}</p>}
         <p className="nt">{(f.rules === 'OTHER' && ['en', 'hi', 'mr'].includes(f.lg)) ? 'This report is supporting evidence, not an official assessment. Check the notice period in your insurance policy.' : L.w}</p>
         <button className="gh" onClick={() => { setT('rp'); setTimeout(print, 150); }}>⬇ Print / PDF</button>
         <button className="gh" onClick={() => open('https://wa.me/?text=' + encodeURIComponent(last))}>WhatsApp</button>

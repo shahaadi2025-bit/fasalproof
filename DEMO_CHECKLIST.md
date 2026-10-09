@@ -12,3 +12,10 @@
 - **What are the limits?** NDVI cannot identify the crop; the plot is a square approximation; stage lengths are regional averages; sum insured is user-entered; the phenology adjustment and Bayesian score are heuristics.
 - **Privacy?** No accounts; photos and AI run on-device; history stays in the browser.
 - **What next?** Land-record boundaries, WhatsApp bot, state insurer integration, validation with field data.
+
+## Live demo on a documented event (Punjab flood, Aug 2025)
+1. Beforehand (about 10 minutes): `.\scripts\demo-case.ps1` writes `demo\out\punjab-2025-ajnala-ravi-flood\` (evidence_report.html, signed_bundle.json, candidates.csv, before.png, after.png). Open the report, check it, and keep it as the backup.
+2. In the app: search "Ramdass" (Amritsar), set the loss date to 2025-08-27, calamity Flood, crop Rice, press Run.
+3. Show: Overview (loss with range) > Damage map tab (drag the before/after slider) > Weather tab (rain vs 10-year history) > Report tab (images and weather are inside) > Print / PDF > Sign and download > verify the file from the left panel.
+4. If optical scenes are limited by cloud, say so, then switch on experimental features and run the radar check.
+5. Close with `EVIDENCE.md`: limitations, false positives, validation status.

@@ -20,3 +20,4 @@ import {meta, routeFor, claimInfo, CURS, areaTxt} from '../src/crops.js';
   const ci = claimInfo({loss_pct: 30, stats: {ci: [20, 40]}}, {...f, notice: '48', si: '1000'}); assert.equal(ci.hrs, 48); assert.equal(ci.dl.toISOString(), '2025-08-12T00:00:00.000Z');
   assert.equal(claimInfo({loss_pct: 30}, {...f, rules: 'IN'}).hrs, 72); assert.equal(areaTxt({ar: 10, unit: 'ha'}), '4.05 ha'); assert.equal(areaTxt({ar: 3}), '3 acres'); assert.equal(CURS.USD, '$'); }
 console.log('worldwide logic tests passed');
+console.log('(chips are exercised by the render smoke test)');

@@ -65,3 +65,21 @@ def flood_stats(pre_lin, post_lin, water_db=-15.0, drop_db=3.0):
     pre, post = to_db(pre_lin[ok]), to_db(post_lin[ok]); fl = (post < water_db) & ((post - pre) < -drop_db)
     return {"pixels": int(ok.sum()), "water_post_pct": round(float((post < water_db).mean() * 100), 1),
             "new_flood_pct": round(float(fl.mean() * 100), 1), "mean_change_db": round(float((post - pre).mean()), 2)}
+
+
+# ---- True-colour chips (pure numpy + zlib; no imaging library needed) ----
+import struct, zlib, base64
+
+def stretch(dn):
+    """Indicative true-colour stretch for Sentinel-2 L2A digital numbers (reflectance x 10000, with the 1000 offset)."""
+    return (np.clip((np.asarray(dn, dtype="float32") - 800.0) / 2600.0, 0, 1) ** 0.6 * 255).astype("uint8")
+
+def png_bytes(rgb):
+    """Encode an HxWx3 uint8 array as a PNG."""
+    rgb = np.ascontiguousarray(rgb, dtype="uint8"); h, w, _ = rgb.shape
+    raw = b"".join(b"\x00" + rgb[y].tobytes() for y in range(h))
+    def chunk(t, d): c = struct.pack(">I", len(d)) + t + d; return c + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b"")
+
+def chip_b64(red, green, blue):
+    return base64.b64encode(png_bytes(np.dstack([stretch(red), stretch(green), stretch(blue)]))).decode()
