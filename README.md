@@ -66,3 +66,6 @@ Sentinel-2: free and open (Copernicus). Open-Meteo: CC BY 4.0, free tier for non
 
 ## Case study and evidence
 `.\scripts\demo-case.ps1` runs a documented event (Ravi flood, Ajnala, 27 Aug 2025) end to end and writes a printable, signed evidence report with before/after satellite images, weather context, all candidate points, same-point controls from earlier years and limitations. `EVIDENCE.md` holds the sources, the field-selection rule, data limitations, false-positive observations and validation status. Backend v4.4 returns true-colour before/after chips; the app shows them as a slider and in the exported report.
+
+## Pitch deck
+`submission/FasalProof_Pitch_Deck.pptx` (9 slides, speaker notes). `.\scripts\make-deck.ps1` adds a live-result slide from a real case-study run (`demo/fill_deck.py`, needs `python-pptx`).

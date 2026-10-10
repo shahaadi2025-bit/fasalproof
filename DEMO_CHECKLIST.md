@@ -19,3 +19,6 @@
 3. Show: Overview (loss with range) > Damage map tab (drag the before/after slider) > Weather tab (rain vs 10-year history) > Report tab (images and weather are inside) > Print / PDF > Sign and download > verify the file from the left panel.
 4. If optical scenes are limited by cloud, say so, then switch on experimental features and run the radar check.
 5. Close with `EVIDENCE.md`: limitations, false positives, validation status.
+
+## Pitch deck order (9 slides, add the live-result slide as slide 5)
+Title > clock and weak evidence > how it works > documented event and method > **live result (after make-deck.ps1)** > architecture > what the farmer gets > more than a dashboard > honest by design > close. For a 3-minute pitch skip slides 6 and 7 and keep the live demo.

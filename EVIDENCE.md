@@ -10,7 +10,7 @@ Everything below separates what is **documented**, what is **measured**, and wha
 | Standing crops on nearly 23,000 ha destroyed in Ajnala since 27 August, when the Ravi first entered villages | The Tribune, "23,000 hectares submerged, 50 houses collapse in Ajnala" |
 | Ghonewal and Machhiwala worst hit after a breach in the Dhussi Bandh | The Tribune, "Ravi river in spate: 20 villages affected" |
 | Floodwater reached about 10 km from the Ravi bank | The Tribune, "Ravi spreads 10 km beyond bank" |
-| About 20 breaches, nearly 190 villages inundated in Ajnala and Lopoke | The Tribune e-paper, 11 Sep 2025 |
+| About 20 breaches, nearly 190 villages inundated in Ajnala and Lopoke | The Tribune e-paper, September 2025 |
 | Paddy on 3,47,601 acres impacted across five districts including Amritsar | The Tribune, "3.47L acres of paddy submerged in 5 dists" |
 | Flood escalated in late August and peaked in early September | SPHERE India situation report, 1 Sep 2025 |
 

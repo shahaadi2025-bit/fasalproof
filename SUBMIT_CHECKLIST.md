@@ -33,3 +33,8 @@
 - [ ] Optional: GoatCounter code in `web/src/site.js` for cookieless visit counts (then update privacy.html)
 - [ ] Have someone read `privacy.html` and `terms.html`; they describe what the app does but are not legal advice
 - [ ] Tell me the 20th checklist item (it was cut off in your screenshot)
+
+## 7. Deck with your real live result (added)
+- [ ] After `.\scripts\demo-case.ps1` finishes, run `.\scripts\make-deck.ps1`. It adds a "What the satellites saw" slide (your real numbers, before/after images, verdict, controls) after the documented-event slide and saves `submission\FasalProof_Pitch_Deck_with_live_result.pptx`
+- [ ] Read that slide aloud once: the verdict line is generated from your numbers and may say "not read as damage" or "inconclusive". Present it as printed; do not edit it into a stronger claim
+- [ ] No time to run it? Send me `raw_results.json` and the two PNGs from `demo\out\...` and I will build the slide for you
